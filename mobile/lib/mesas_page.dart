@@ -24,7 +24,7 @@ class _MesasPageState extends State<MesasPage> {
   }
 
   Future<void> _fetchMesas() async {
-    final response = await http.get(Uri.parse('http://192.168.0.6:5000/mesas'));
+    final response = await http.get(Uri.parse('https://ordersync.onrender.com/mesas'));
     if (response.statusCode == 200) {
       setState(() {
         mesas = json.decode(response.body);
@@ -42,7 +42,7 @@ class _MesasPageState extends State<MesasPage> {
 
   Future<void> _abrirMesa(String mesaId) async {
     final response = await http.put(
-      Uri.parse('http://192.168.0.6:5000/mesas/$mesaId'),
+      Uri.parse('https://ordersync.onrender.com/mesas/$mesaId'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
