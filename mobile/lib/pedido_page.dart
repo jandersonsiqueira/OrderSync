@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:order_sync/pedidos_parciais_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:order_sync/carrinho_pedido_page.dart';
 import 'package:order_sync/produtos_view.dart';
@@ -32,7 +33,7 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Future<void> _fetchCategorias() async {
-    final response = await http.get(Uri.parse('http://192.168.0.6:5000/categorias'));
+    final response = await http.get(Uri.parse('https://ordersync.onrender.com/categorias'));
     if (response.statusCode == 200) {
       setState(() {
         categorias = json.decode(response.body);
@@ -47,7 +48,7 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Future<void> _fetchProdutos() async {
-    final response = await http.get(Uri.parse('http://192.168.0.6:5000/produtos'));
+    final response = await http.get(Uri.parse('https://ordersync.onrender.com/produtos'));
     if (response.statusCode == 200) {
       setState(() {
         produtos = json.decode(response.body);
@@ -139,16 +140,77 @@ class _PedidoPageState extends State<PedidoPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Pedido - Mesa ${widget.mesaId}'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.point_of_sale_sharp),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PedidosParciaisPage(mesaId: widget.mesaId),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
         body: Column(
           children: [
             Expanded(
               child: categoriaSelecionada == null ? _buildCategoriasView() : _buildProdutosView(),
             ),
-            _buildCarrinhoResumo(),
+            if (categoriaSelecionada != null) _buildCarrinhoResumo(),
           ],
         ),
+        floatingActionButton: categoriaSelecionada == null
+            ? _buildFloatingActionButton()
+            : null,
       ),
+    );
+  }
+
+  Widget _buildFloatingActionButton() {
+    return FloatingActionButton(
+      onPressed: () {
+        _showMenu(context);
+      },
+      backgroundColor: Theme.of(context).primaryColor,
+      child: Icon(
+        Icons.menu_sharp,
+        color: Colors.white,
+      ),
+    );
+  }
+
+  void _showMenu(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.check),
+                title: Text('Finalizar Atendimento'),
+                onTap: () {
+                  // Lógica para editar o pedido
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.cancel),
+                title: Text('Cancelar Pedido'),
+                onTap: () {
+                  // Lógica para cancelar o pedido
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
