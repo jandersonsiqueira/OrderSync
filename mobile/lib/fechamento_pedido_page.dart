@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FechamentoPedidoPage extends StatefulWidget {
@@ -43,9 +42,7 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
     try {
       final response = await http.post(
         Uri.parse('https://ordersync.onrender.com/pedidos/parcial'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: json.encode(pedidoData),
       );
 
@@ -72,6 +69,78 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
     prefs.remove('carrinho_${widget.mesaId}');
   }
 
+  void _editarItem(BuildContext context, String cdProduto, int quantidadeAtual, String observacaoAtual) {
+    TextEditingController quantidadeController = TextEditingController(text: quantidadeAtual.toString());
+    TextEditingController observacaoController = TextEditingController(text: observacaoAtual);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          surfaceTintColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.0), // Bordas arredondadas
+          ),
+          title: Text(
+            'Editar Produto',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: quantidadeController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Quantidade',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)), // Bordas arredondadas
+                  ),
+                ),
+                SizedBox(height: 16.0), // Espaço entre os campos
+                TextField(
+                  controller: observacaoController,
+                  decoration: InputDecoration(
+                    labelText: 'Observação',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)), // Bordas arredondadas
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  // Atualiza a quantidade e a observação do item no carrinho
+                  widget.carrinho[cdProduto]['quantidade'] = int.parse(quantidadeController.text);
+                  widget.carrinho[cdProduto]['observacao'] = observacaoController.text;
+                });
+                // _salvarCarrinhoCache();
+                Navigator.of(context).pop();
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).canvasColor, // Cor do texto
+                textStyle: TextStyle(fontWeight: FontWeight.bold), // Estilo do texto
+              ),
+              child: Text('Salvar'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).canvasColor, // Cor do texto
+                textStyle: TextStyle(fontWeight: FontWeight.bold), // Estilo do texto
+              ),
+              child: Text('Cancelar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +186,7 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  onTap: () => _editarItem(context, produto['cd_produto'].toString(), quantidade, widget.carrinho[produto['cd_produto'].toString()]['observacao'] ?? ''),
                 );
               },
             ),

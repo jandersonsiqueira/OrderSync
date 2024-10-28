@@ -32,7 +32,6 @@ class _PedidosParciaisPageState extends State<PedidosParciaisPage> {
         isLoading = false;
       });
     } else {
-      // Trate o erro conforme necessário
       setState(() {
         isLoading = false;
       });
@@ -48,6 +47,13 @@ class _PedidosParciaisPageState extends State<PedidosParciaisPage> {
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
+          : pedidos.isEmpty
+          ? Center(
+        child: Text(
+          'Nenhum pedido encontrado.',
+          style: TextStyle(fontSize: 18, color: Colors.grey),
+        ),
+      )
           : Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView.builder(

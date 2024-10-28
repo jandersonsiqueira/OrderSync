@@ -23,6 +23,7 @@ class _PedidoPageState extends State<PedidoPage> {
   Map<String, dynamic> carrinho = {};
   String? categoriaSelecionada;
   String pesquisa = '';
+  TextEditingController _observacaoController = TextEditingController();
 
   @override
   void initState() {
@@ -30,6 +31,7 @@ class _PedidoPageState extends State<PedidoPage> {
     _fetchCategorias();
     _fetchProdutos();
     _carregarCarrinhoCache();
+    _carregarObservacaoCache();
   }
 
   Future<void> _fetchCategorias() async {
@@ -87,6 +89,19 @@ class _PedidoPageState extends State<PedidoPage> {
     }
   }
 
+  Future<void> _carregarObservacaoCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final observacao = prefs.getString('observacao_${widget.mesaId}');
+    if (observacao != null) {
+      _observacaoController.text = observacao;
+    }
+  }
+
+  void _salvarObservacaoCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('observacao_${widget.mesaId}', _observacaoController.text);
+  }
+
   void _adicionarQtdCarrinho(Map<String, dynamic> produto, int quantidade) {
     final codigoProduto = produto['cd_produto'].toString();
 
@@ -113,6 +128,93 @@ class _PedidoPageState extends State<PedidoPage> {
     setState(() {
       carrinho.remove(produto['cd_produto']);
     });
+  }
+
+  Future<bool> _temPedidosParciais() async {
+    final response = await http.get(Uri.parse('https://ordersync.onrender.com/pedidos/parcial?numero_mesa=${widget.mesaId}'));
+
+    if (response.statusCode == 200) {
+      final pedidosParciais = json.decode(response.body);
+      return pedidosParciais.isNotEmpty;
+    } else {
+      throw Exception('Falha ao verificar pedidos parciais');
+    }
+  }
+
+  void _finalizarAtendimento() async {
+    bool temPedidosParciais = await _temPedidosParciais();
+
+    if (!temPedidosParciais) {
+      _showAlertaSemPedidosParciais();
+      return;
+    }
+
+    String cdPedido = DateTime.now().toString().replaceAll('-', '').replaceAll(' ', '').replaceAll(':', '').replaceAll('.', '').substring(0, 14) + widget.mesaId;
+    String dtEmissao = DateTime.now().toIso8601String();
+
+    final pedidoData = {
+      "cd_pedido": cdPedido,
+      "numero_mesa": widget.mesaId,
+      "dt_emissao": dtEmissao,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://ordersync.onrender.com/pedidos/final'),
+        headers: {"Content-Type": "application/json"},
+        body: json.encode(pedidoData),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          carrinho.clear();
+        });
+        _finalizarMesa(widget.mesaId);
+        Navigator.popUntil(context, ModalRoute.withName('/mesas_page'));
+      } else {
+        throw Exception('Falha ao finalizar atendimento');
+      }
+    } catch (e) {
+      print('Erro ao finalizar atendimento: $e');
+    }
+  }
+
+  void _showAlertaSemPedidosParciais() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Sem Pedidos Parciais'),
+          content: Text('Não há pedidos parciais para esta mesa.'),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  Future<void> _finalizarMesa(String mesaId) async {
+    final response = await http.put(
+      Uri.parse('https://ordersync.onrender.com/mesas/$mesaId'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'status': 'livre',
+        'observacao': '',
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Falha ao finalizar atendimento');
+    }
   }
 
   int _getQuantidadeProdutos() {
@@ -156,6 +258,45 @@ class _PedidoPageState extends State<PedidoPage> {
         ),
         body: Column(
           children: [
+            if (categoriaSelecionada == null)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _observacaoController,
+                  decoration: InputDecoration(
+                    labelText: 'Observação/Apelido da Mesa',
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).canvasColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    filled: true,
+                    fillColor: Theme.of(context).cardColor,
+                    prefixIcon: Icon(
+                      Icons.note_alt_outlined,
+                      color: Theme.of(context).canvasColor,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: Theme.of(context).canvasColor!),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: Theme.of(context).canvasColor, width: 1.5),
+                    ),
+                  ),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black87,
+                  ),
+                  onChanged: (value) {
+                    _salvarObservacaoCache();
+                  },
+                ),
+              ),
             Expanded(
               child: categoriaSelecionada == null ? _buildCategoriasView() : _buildProdutosView(),
             ),
@@ -195,15 +336,7 @@ class _PedidoPageState extends State<PedidoPage> {
                 leading: Icon(Icons.check),
                 title: Text('Finalizar Atendimento'),
                 onTap: () {
-                  // Lógica para editar o pedido
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.cancel),
-                title: Text('Cancelar Pedido'),
-                onTap: () {
-                  // Lógica para cancelar o pedido
+                  _finalizarAtendimento();
                   Navigator.pop(context);
                 },
               ),
@@ -218,8 +351,8 @@ class _PedidoPageState extends State<PedidoPage> {
     return CategoriasView(
       categorias: categorias,
       onCategoriaTap: _showProdutos,
-    );
-  }
+          );
+        }
 
   Widget _buildProdutosView() {
     return ProdutosView(
@@ -249,9 +382,9 @@ class _PedidoPageState extends State<PedidoPage> {
             builder: (context) => FechamentoPedidoPage(
               carrinho: carrinho,
               mesaId: widget.mesaId,
-            ),
           ),
-        );
+      ),
+    );
       } : () {},
     );
   }
