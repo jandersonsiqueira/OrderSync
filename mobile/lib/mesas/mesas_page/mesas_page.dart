@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import 'pedido_page.dart';
+import '../pedido/pedido_page.dart';
 
 class MesasPage extends StatefulWidget {
   const MesasPage({Key? key}) : super(key: key);
@@ -85,27 +85,44 @@ class _MesasPageState extends State<MesasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mesas'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50.0),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: const InputDecoration(
+        title: const Text(
+            'Mesas',
+            style: const TextStyle(
+              color: Colors.white,
+            )
+        ),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).primaryColor,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              decoration: InputDecoration(
                 hintText: 'Pesquisar por número da mesa...',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                prefixIcon: Icon(Icons.search, color: Theme.of(context).canvasColor),
               ),
               onChanged: _searchMesas,
             ),
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildMesaSection('Mesas em Andamento', mesasAndamento, true),
-            _buildMesaSection('Mesas Livres', mesasLivres, false),
+            const SizedBox(height: 20),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildMesaSection('Mesas em Andamento', mesasAndamento, true),
+                    const SizedBox(height: 16),
+                    _buildMesaSection('Mesas Livres', mesasLivres, false),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -163,13 +180,13 @@ class _MesasPageState extends State<MesasPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (!isAndamento)
-                    Text(
-                      'ABRIR',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
+                      Text(
+                        'ABRIR',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                        ),
                       ),
-                    ),
                     Text(
                       mesa['numero_mesa'].toString(),
                       style: const TextStyle(color: Colors.white, fontSize: 18),

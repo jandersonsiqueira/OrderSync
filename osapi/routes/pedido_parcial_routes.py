@@ -2,9 +2,9 @@ from flask import Blueprint, jsonify, request
 from bson import ObjectId 
 from ..db import pedido_parcial_collection, item_pedido_parcial_collection
 
-pedidos_bp = Blueprint('pedidos', __name__)
+pedido_parcial_bp = Blueprint('pedido_parcial', __name__)
 
-@pedidos_bp.route('/pedidos/parcial', methods=['POST'])
+@pedido_parcial_bp.route('/pedidos/parcial', methods=['POST'])
 def criar_pedido_parcial():
     dados = request.json
     cd_pedido = dados['cd_pedido']
@@ -40,7 +40,7 @@ def criar_pedido_parcial():
 
 
 # Rota para listar pedidos parciais filtrando pelo número da mesa
-@pedidos_bp.route('/pedidos/parcial', methods=['GET'])
+@pedido_parcial_bp.route('/pedidos/parcial', methods=['GET'])
 def listar_pedidos_parciais():
     numero_mesa = request.args.get('numero_mesa')  # Obtém o número da mesa dos parâmetros de consulta
 

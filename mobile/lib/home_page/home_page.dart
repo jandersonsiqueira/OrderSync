@@ -46,7 +46,7 @@ class HomePage extends StatelessWidget {
                 text: 'Vendas',
                 icon: FontAwesomeIcons.coins,
                 onPressed: () {
-                  // Ação para o botão "Vendas"
+                  Navigator.pushNamed(context, '/vendas_page');
                 },
               ),
               _bottomNavigationBarButton(
