@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:order_sync/pedidos_parciais_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:order_sync/carrinho_pedido_page.dart';
-import 'package:order_sync/produtos_view.dart';
 import 'dart:convert';
+import '../../home_page/home_page.dart';
+import '../pedido_parcial/pedidos_parciais_page.dart';
+import '../view/categorias_view.dart';
+import '../view/produtos_view.dart';
+import 'carrinho_pedido_page.dart';
 import 'fechamento_pedido_page.dart';
-import 'categorias_view.dart';
 
 class PedidoPage extends StatefulWidget {
   final String mesaId;
@@ -166,11 +167,27 @@ class _PedidoPageState extends State<PedidoPage> {
       );
 
       if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Atendimento finalizado com sucesso!',
+              style: TextStyle(color: Theme.of(context).canvasColor),
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
         setState(() {
           carrinho.clear();
+          _observacaoController.clear();
+          _salvarObservacaoCache();
         });
         _finalizarMesa(widget.mesaId);
-        Navigator.popUntil(context, ModalRoute.withName('/mesas_page'));
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+              (Route<dynamic> route) => false,
+        );
       } else {
         throw Exception('Falha ao finalizar atendimento');
       }
@@ -241,7 +258,17 @@ class _PedidoPageState extends State<PedidoPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Pedido - Mesa ${widget.mesaId}'),
+          title: Text(
+              'Pedido - Mesa ${widget.mesaId}',
+              style: const TextStyle(
+                color: Colors.white,
+              )
+          ),
+          centerTitle: true,
+          backgroundColor: Theme.of(context).primaryColor,
+          iconTheme: const IconThemeData(
+            color: Colors.white,
+          ),
           actions: [
             IconButton(
               icon: Icon(Icons.point_of_sale_sharp),
@@ -290,7 +317,7 @@ class _PedidoPageState extends State<PedidoPage> {
                   ),
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black87,
+                    color: Theme.of(context).canvasColor,
                   ),
                   onChanged: (value) {
                     _salvarObservacaoCache();
@@ -351,8 +378,8 @@ class _PedidoPageState extends State<PedidoPage> {
     return CategoriasView(
       categorias: categorias,
       onCategoriaTap: _showProdutos,
-          );
-        }
+    );
+  }
 
   Widget _buildProdutosView() {
     return ProdutosView(
@@ -382,9 +409,9 @@ class _PedidoPageState extends State<PedidoPage> {
             builder: (context) => FechamentoPedidoPage(
               carrinho: carrinho,
               mesaId: widget.mesaId,
+            ),
           ),
-      ),
-    );
+        );
       } : () {},
     );
   }

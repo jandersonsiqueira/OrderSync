@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FechamentoPedidoPage extends StatefulWidget {
@@ -34,7 +35,7 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
           'cd_produto': item['produto']['cd_produto'],
           'pr_venda': item['produto']['pr_venda'],
           'qt_item': item['quantidade'],
-          'observacao': '',
+          'observacao': item['observacao'],
         };
       }).toList(),
     };
@@ -42,17 +43,27 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
     try {
       final response = await http.post(
         Uri.parse('https://ordersync.onrender.com/pedidos/parcial'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: json.encode(pedidoData),
       );
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pedido finalizado com sucesso!')),
+          SnackBar(
+            content: Text(
+              'Pedido finalizado com sucesso!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
         );
         _limparCarrinhoCache();
         Navigator.popUntil(context, ModalRoute.withName('/mesas_page'));
-      } else {
+      }
+      else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao finalizar o pedido: ${response.body}')),
         );
@@ -64,9 +75,22 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
     }
   }
 
+  void _removerItem(String cdProduto) {
+    setState(() {
+      widget.carrinho.remove(cdProduto);
+    });
+    _salvarCarrinhoCache();
+  }
+
   void _limparCarrinhoCache() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.remove('carrinho_${widget.mesaId}');
+  }
+
+  void _salvarCarrinhoCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    final carrinhoEncoded = json.encode(widget.carrinho);
+    prefs.setString('carrinho_${widget.mesaId}', carrinhoEncoded);
   }
 
   void _editarItem(BuildContext context, String cdProduto, int quantidadeAtual, String observacaoAtual) {
@@ -79,7 +103,7 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
         return AlertDialog(
           surfaceTintColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0), // Bordas arredondadas
+            borderRadius: BorderRadius.circular(16.0),
           ),
           title: Text(
             'Editar Produto',
@@ -97,15 +121,15 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: 'Quantidade',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)), // Bordas arredondadas
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
                   ),
                 ),
-                SizedBox(height: 16.0), // Espaço entre os campos
+                SizedBox(height: 16.0),
                 TextField(
                   controller: observacaoController,
                   decoration: InputDecoration(
                     labelText: 'Observação',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)), // Bordas arredondadas
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
                   ),
                 ),
               ],
@@ -115,24 +139,23 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  // Atualiza a quantidade e a observação do item no carrinho
                   widget.carrinho[cdProduto]['quantidade'] = int.parse(quantidadeController.text);
                   widget.carrinho[cdProduto]['observacao'] = observacaoController.text;
                 });
-                // _salvarCarrinhoCache();
+                _salvarCarrinhoCache();
                 Navigator.of(context).pop();
               },
               style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).canvasColor, // Cor do texto
-                textStyle: TextStyle(fontWeight: FontWeight.bold), // Estilo do texto
+                foregroundColor: Theme.of(context).canvasColor,
+                textStyle: TextStyle(fontWeight: FontWeight.bold),
               ),
               child: Text('Salvar'),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).canvasColor, // Cor do texto
-                textStyle: TextStyle(fontWeight: FontWeight.bold), // Estilo do texto
+                foregroundColor: Theme.of(context).canvasColor,
+                textStyle: TextStyle(fontWeight: FontWeight.bold),
               ),
               child: Text('Cancelar'),
             ),
@@ -152,7 +175,17 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Resumo do Pedido - Mesa ${widget.mesaId}'),
+        title: Text(
+            'Resumo do Pedido - Mesa ${widget.mesaId}',
+            style: const TextStyle(
+              color: Colors.white,
+            )
+        ),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).primaryColor,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
       ),
       body: Column(
         children: [
@@ -168,25 +201,47 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
                   leading: CircleAvatar(
                     backgroundColor: Theme.of(context).primaryColor,
                     child: Text(
-                        produto['cd_produto'].toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        )
+                      produto['cd_produto'].toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   title: Text(produto['nm_produto']),
                   subtitle: Text('Quantidade: $quantidade'),
-                  trailing: Text(
-                    'R\$ $totalProduto',
-                    style: const TextStyle(
-                      color: Colors.green,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'R\$ $totalProduto',
+                        style: const TextStyle(
+                          color: Colors.green,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          _removerItem(produto['cd_produto'].toString());
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Produto removido do carrinho.'),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                  onTap: () => _editarItem(context, produto['cd_produto'].toString(), quantidade, widget.carrinho[produto['cd_produto'].toString()]['observacao'] ?? ''),
+                  onTap: () => _editarItem(
+                    context,
+                    produto['cd_produto'].toString(),
+                    quantidade,
+                    widget.carrinho[produto['cd_produto'].toString()]['observacao'] ?? '',
+                  ),
                 );
               },
             ),

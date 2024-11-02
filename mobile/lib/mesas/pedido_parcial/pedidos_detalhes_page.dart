@@ -13,7 +13,17 @@ class PedidoDetalhesPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Detalhes do Pedido ${pedido['cd_pedido']}'),
+        title: Text(
+            'Detalhes do Pedido',
+            style: const TextStyle(
+              color: Colors.white,
+            )
+        ),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).primaryColor,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -21,7 +31,6 @@ class PedidoDetalhesPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Cabeçalho com informações do pedido
               Card(
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 elevation: 3,
@@ -50,7 +59,7 @@ class PedidoDetalhesPage extends StatelessWidget {
                       SizedBox(height: 8),
                       Text(
                         'Valor Total: R\$ ${pedido['vr_pedido'].toStringAsFixed(2)}',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Theme.of(context).canvasColor),
                       ),
                     ],
                   ),
@@ -62,14 +71,13 @@ class PedidoDetalhesPage extends StatelessWidget {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 8),
-              // Lista de itens
               ListView.builder(
                 itemCount: pedido['itens'].length,
                 shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(), // Para evitar scroll na lista
+                physics: NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
                   final item = pedido['itens'][index];
-                  double subtotal = item['pr_venda'] * item['qt_item']; // Calcular subtotal do item
+                  double subtotal = item['pr_venda'] * item['qt_item'];
 
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -78,8 +86,8 @@ class PedidoDetalhesPage extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
                         children: [
-                          Icon(Icons.fastfood, color: Theme.of(context).primaryColor),
-                          SizedBox(width: 10), // Espaço entre ícone e texto
+                          Icon(Icons.fastfood, color: Theme.of(context).canvasColor),
+                          SizedBox(width: 10),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

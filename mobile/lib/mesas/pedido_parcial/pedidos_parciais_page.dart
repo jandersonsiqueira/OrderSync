@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'package:order_sync/pedidos_detalhes_page.dart';
+import 'package:order_sync/mesas/pedido_parcial/pedidos_detalhes_page.dart';
 
 class PedidosParciaisPage extends StatefulWidget {
   final String mesaId;
@@ -43,7 +43,17 @@ class _PedidosParciaisPageState extends State<PedidosParciaisPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pedidos Parciais'),
+        title: Text(
+            'Pedidos Parciais',
+            style: const TextStyle(
+              color: Colors.white,
+            )
+        ),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).primaryColor,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -82,7 +92,7 @@ class _PedidosParciaisPageState extends State<PedidosParciaisPage> {
                     Text('Data Emissão: $dtEmissaoFormatada', style: TextStyle(fontSize: 16)),
                   ],
                 ),
-                trailing: Icon(Icons.arrow_forward, color: Theme.of(context).primaryColor),
+                trailing: Icon(Icons.arrow_forward, color: Theme.of(context).canvasColor),
                 onTap: () {
                   Navigator.push(
                     context,
