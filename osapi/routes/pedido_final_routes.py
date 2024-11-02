@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from bson import ObjectId 
 from ..db import pedido_parcial_collection, item_pedido_parcial_collection, pedido_collection, item_pedido_collection
-from datetime import datetime
+from datetime import datetime, timedelta
 
 pedido_final_bp = Blueprint('pedido_final', __name__)
 
@@ -48,3 +48,53 @@ def finalizar_atendimento():
     item_pedido_parcial_collection.delete_many({"cd_pedido": {"$in": [pedido['cd_pedido'] for pedido in pedidos_parciais]}})
 
     return jsonify({"msg": "Atendimento finalizado e pedidos transferidos com sucesso!", "cd_pedido": cd_pedido}), 200
+
+from datetime import datetime
+from flask import jsonify, request
+
+@pedido_final_bp.route('/pedidos/final', methods=['GET'])
+def listar_pedidos():
+    numero_mesa = request.args.get('numero_mesa')  # Obtém o número da mesa dos parâmetros de consulta
+    dt_inicial = request.args.get('dt_inicial')  # Obtém a data inicial dos parâmetros de consulta
+    dt_final = request.args.get('dt_final')  # Obtém a data final dos parâmetros de consulta
+    cd_pedido = request.args.get('cd_pedido')  # Obtém o código do pedido dos parâmetros de consulta
+
+    # Inicializa o filtro
+    filtro = {}
+
+    # Adiciona filtros conforme necessário
+    if cd_pedido:
+        filtro['cd_pedido'] = cd_pedido  # Se o código do pedido for fornecido, aplica o filtro
+    else:
+        if numero_mesa:
+            filtro['numero_mesa'] = numero_mesa  # Filtra por número da mesa
+
+    # Busca os pedidos parciais com o filtro aplicado
+    pedidos = list(pedido_collection.find(filtro))
+
+    # Converte as datas recebidas para objetos datetime
+    if dt_inicial and dt_final:
+        try:
+            dt_inicial = datetime.strptime(dt_inicial, '%Y-%m-%d')
+            dt_final = datetime.strptime(dt_final, '%Y-%m-%d') + timedelta(days=1) - timedelta(seconds=1)
+
+            # Filtra os pedidos com base na dt_emissao
+            pedidos = [pedido for pedido in pedidos 
+                       if dt_inicial <= datetime.fromisoformat(pedido['dt_emissao'][:-1]) <= dt_final]
+        
+        except ValueError:
+            return jsonify({"msg": "Data inválida, utilize o formato YYYY-MM-DD."}), 400
+
+    # Adiciona os itens ao pedido
+    for pedido in pedidos:
+        pedido['_id'] = str(pedido['_id'])  # Converter ObjectId para string
+
+        # Buscar os itens do pedido
+        itens = list(item_pedido_collection.find({"cd_pedido": pedido['cd_pedido']}))
+        
+        # Converter ObjectId para string e adicionar os itens ao pedido
+        for item in itens:
+            item['_id'] = str(item['_id'])  # Converter ObjectId para string
+        pedido['itens'] = itens  # Adiciona a lista de itens ao pedido
+
+    return jsonify(pedidos), 200
