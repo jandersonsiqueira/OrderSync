@@ -171,7 +171,7 @@ class _PedidoPageState extends State<PedidoPage> {
           SnackBar(
             content: Text(
               'Atendimento finalizado com sucesso!',
-              style: TextStyle(color: Theme.of(context).canvasColor),
+              style: TextStyle(color: Colors.white),
             ),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
