@@ -16,6 +16,7 @@ class _MesasPageState extends State<MesasPage> {
   List<dynamic> mesasLivres = [];
   List<dynamic> mesasAndamento = [];
   String searchQuery = '';
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -24,14 +25,26 @@ class _MesasPageState extends State<MesasPage> {
   }
 
   Future<void> _fetchMesas() async {
-    final response = await http.get(Uri.parse('https://ordersync.onrender.com/mesas'));
-    if (response.statusCode == 200) {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await http.get(Uri.parse('https://ordersync.onrender.com/mesas'));
+      if (response.statusCode == 200) {
+        setState(() {
+          mesas = json.decode(response.body);
+          _filterMesas();
+        });
+      } else {
+        throw Exception('Falha ao carregar mesas');
+      }
+    } catch (e) {
+      print('Erro: $e');
+    } finally {
       setState(() {
-        mesas = json.decode(response.body);
-        _filterMesas();
+        isLoading = false;
       });
-    } else {
-      throw Exception('Falha ao carregar mesas');
     }
   }
 
@@ -41,27 +54,48 @@ class _MesasPageState extends State<MesasPage> {
   }
 
   Future<void> _abrirMesa(String mesaId) async {
-    final response = await http.put(
-      Uri.parse('https://ordersync.onrender.com/mesas/$mesaId'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'status': 'andamento',
-      }),
-    );
+    setState(() {
+      isLoading = true;
+    });
 
-    if (response.statusCode == 200) {
-      setState(() {
-        mesasLivres.removeWhere((mesa) => mesa['numero_mesa'].toString() == mesaId);
-        mesasAndamento.add({
-          "numero_mesa": mesaId,
-          "status": "andamento",
-          "observacao": "",
+    try {
+      final response = await http.put(
+        Uri.parse('https://ordersync.onrender.com/mesas/$mesaId'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'status': 'andamento',
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          mesasLivres.removeWhere((mesa) => mesa['numero_mesa'].toString() == mesaId);
+          mesasAndamento.add({
+            "numero_mesa": mesaId,
+            "status": "andamento",
+            "observacao": "",
+          });
         });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Mesa $mesaId aberta",
+              style: TextStyle(color: Colors.white),
+            ),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        throw Exception('Falha ao abrir mesa');
+      }
+    } finally {
+      setState(() {
+        isLoading = false;
       });
-    } else {
-      throw Exception('Falha ao abrir mesa');
     }
   }
 
@@ -86,10 +120,10 @@ class _MesasPageState extends State<MesasPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-            'Mesas',
-            style: const TextStyle(
-              color: Colors.white,
-            )
+          'Mesas',
+          style: TextStyle(
+            color: Colors.white,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Theme.of(context).primaryColor,
@@ -99,7 +133,9 @@ class _MesasPageState extends State<MesasPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
+        child: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Column(
           children: [
             TextField(
               decoration: InputDecoration(

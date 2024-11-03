@@ -16,12 +16,18 @@ class FechamentoPedidoPage extends StatefulWidget {
 
 class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
 
+  bool isLoading = false;
+
   Future<void> finalizarPedido(BuildContext context) async {
+    setState(() {
+      isLoading = true; // Inicia o carregamento
+    });
+
     final double totalPedido = widget.carrinho.values
         .map((item) => item['produto']['pr_venda'] * item['quantidade'])
         .reduce((value, element) => value + element);
 
-    String cdPedido = DateTime.now().toString().replaceAll('-', '').replaceAll(' ', '').replaceAll(':', '').replaceAll('.', '').substring(0, 17)+widget.mesaId;
+    String cdPedido = DateTime.now().toString().replaceAll('-', '').replaceAll(' ', '').replaceAll(':', '').replaceAll('.', '').substring(0, 17) + widget.mesaId;
     String dtEmissao = DateTime.now().toIso8601String();
 
     final pedidoData = {
@@ -62,8 +68,7 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
         );
         _limparCarrinhoCache();
         Navigator.popUntil(context, ModalRoute.withName('/mesas_page'));
-      }
-      else {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao finalizar o pedido: ${response.body}')),
         );
@@ -72,20 +77,24 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro: $e')),
       );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
   void _removerItem(String cdProduto) {
-    setState(() {
+      setState(() {
       widget.carrinho.remove(cdProduto);
-    });
+      });
     _salvarCarrinhoCache();
   }
 
   void _limparCarrinhoCache() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.remove('carrinho_${widget.mesaId}');
-  }
+    }
 
   void _salvarCarrinhoCache() async {
     final prefs = await SharedPreferences.getInstance();
@@ -176,10 +185,10 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'Resumo do Pedido - Mesa ${widget.mesaId}',
-            style: const TextStyle(
-              color: Colors.white,
-            )
+          'Resumo do Pedido - Mesa ${widget.mesaId}',
+          style: const TextStyle(
+            color: Colors.white,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Theme.of(context).primaryColor,
@@ -187,97 +196,108 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
           color: Colors.white,
         ),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: widget.carrinho.length,
-              itemBuilder: (context, index) {
-                final produto = widget.carrinho.values.elementAt(index)['produto'];
-                final quantidade = widget.carrinho.values.elementAt(index)['quantidade'];
-                final totalProduto = produto['pr_venda'] * quantidade;
+          Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  itemCount: widget.carrinho.length,
+                  itemBuilder: (context, index) {
+                    final produto = widget.carrinho.values.elementAt(index)['produto'];
+                    final quantidade = widget.carrinho.values.elementAt(index)['quantidade'];
+                    final totalProduto = produto['pr_venda'] * quantidade;
 
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    child: Text(
-                      produto['cd_produto'].toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  title: Text(produto['nm_produto']),
-                  subtitle: Text('Quantidade: $quantidade'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'R\$ $totalProduto',
-                        style: const TextStyle(
-                          color: Colors.green,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        child: Text(
+                          produto['cd_produto'].toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          _removerItem(produto['cd_produto'].toString());
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Produto removido do carrinho.'),
-                              duration: const Duration(seconds: 2),
+                      title: Text(produto['nm_produto']),
+                      subtitle: Text('Quantidade: $quantidade'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'R\$ $totalProduto',
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                          );
-                        },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              _removerItem(produto['cd_produto'].toString());
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Produto removido do carrinho.'),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  onTap: () => _editarItem(
-                    context,
-                    produto['cd_produto'].toString(),
-                    quantidade,
-                    widget.carrinho[produto['cd_produto'].toString()]['observacao'] ?? '',
-                  ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Total do Pedido: R\$ $totalPedido',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              onPressed: () => finalizarPedido(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 5,
-              ),
-              child: const Text(
-                'Finalizar',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+                      onTap: () => _editarItem(
+                        context,
+                        produto['cd_produto'].toString(),
+                        quantidade,
+                        widget.carrinho[produto['cd_produto'].toString()]['observacao'] ?? '',
+                      ),
+                    );
+                  },
                 ),
               ),
-            ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Total do Pedido: R\$ $totalPedido',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : () => finalizarPedido(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 5,
+                  ),
+                  child: const Text(
+                    'Finalizar',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
+          if (isLoading)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
         ],
       ),
     );

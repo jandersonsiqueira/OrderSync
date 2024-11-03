@@ -13,7 +13,8 @@ class _VendasPageState extends State<VendasPage> {
   DateTime dtFinal = DateTime.now();
   String numeroMesa = '';
   List<dynamic> pedidos = [];
-  bool showFilters = true;
+  bool showFilters = false;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -22,6 +23,10 @@ class _VendasPageState extends State<VendasPage> {
   }
 
   Future<void> _buscarPedidos() async {
+    setState(() {
+      isLoading = true;
+    });
+
     final response = await http.get(
       Uri.parse('https://ordersync.onrender.com/pedidos/final?dt_inicial=${DateFormat('yyyy-MM-dd').format(dtInicial)}&dt_final=${DateFormat('yyyy-MM-dd').format(dtFinal)}&numero_mesa=$numeroMesa'),
     );
@@ -34,7 +39,10 @@ class _VendasPageState extends State<VendasPage> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao buscar pedidos')));
     }
 
-    showFilters = !showFilters;
+    setState(() {
+      isLoading = false;
+      showFilters = false;
+    });
   }
 
   void _selectDate(DateTime initialDate, bool isStartDate) async {
@@ -52,13 +60,11 @@ class _VendasPageState extends State<VendasPage> {
           dtFinal = picked;
         }
       });
-      _buscarPedidos();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Calcular total de pedidos e valor total
     int totalPedidos = pedidos.length;
     double valorTotal = pedidos.fold(0.0, (sum, pedido) => sum + pedido['vr_pedido']);
 
@@ -72,180 +78,187 @@ class _VendasPageState extends State<VendasPage> {
         backgroundColor: Theme.of(context).primaryColor,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Botão para ocultar/exibir filtros
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Filtros',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                IconButton(
-                  icon: Icon(
-                    showFilters ? Icons.expand_less : Icons.expand_more,
-                    color: Theme.of(context).primaryColor,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      showFilters = !showFilters;
-                    });
-                  },
-                ),
-              ],
-            ),
-            // Seção de filtros
-            if (showFilters)
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                elevation: 3,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Data Inicial:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text('${DateFormat('dd/MM/yyyy').format(dtInicial)}'),
-                          IconButton(
-                            icon: Icon(Icons.calendar_today, color: Theme.of(context).primaryColor),
-                            onPressed: () => _selectDate(dtInicial, true),
-                          ),
-                        ],
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Filtros',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        showFilters ? Icons.expand_less : Icons.expand_more,
+                        color: Theme.of(context).primaryColor,
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Data Final:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text('${DateFormat('dd/MM/yyyy').format(dtFinal)}'),
-                          IconButton(
-                            icon: Icon(Icons.calendar_today, color: Theme.of(context).primaryColor),
-                            onPressed: () => _selectDate(dtFinal, false),
-                          ),
-                        ],
-                      ),
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Número da Mesa',
-                          labelStyle: TextStyle(color: Theme.of(context).canvasColor),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Theme.of(context).canvasColor),
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Theme.of(context).primaryColor),
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            numeroMesa = value;
-                          });
-                        },
-                      ),
-                      SizedBox(height: 10),
-                      ElevatedButton.icon(
-                        onPressed: _buscarPedidos,
-                        icon: Icon(Icons.search, color: Colors.white),
-                        label: Text(
-                          'Buscar',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                      onPressed: () {
+                        setState(() {
+                          showFilters = !showFilters;
+                        });
+                      },
+                    ),
+                  ],
                 ),
-              ),
-            SizedBox(height: 20),
-            // Lista de pedidos
-            Expanded(
-              child: pedidos.isEmpty
-                  ? Center(
-                child: Text(
-                  'Nenhum pedido encontrado.',
-                  style: TextStyle(color: Colors.grey),
-                ),
-              )
-                  : ListView.builder(
-                itemCount: pedidos.length,
-                itemBuilder: (context, index) {
-                  final pedido = pedidos[index];
-                  DateTime dtEmissao = DateTime.parse(pedido['dt_emissao']);
-                  String dtEmissaoFormatada = DateFormat('dd/MM/yyyy HH:mm:ss').format(dtEmissao);
-                  return Card(
+                if (showFilters)
+                  Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                     elevation: 3,
-                    margin: EdgeInsets.symmetric(vertical: 8.0),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.all(16.0),
-                      title: Text(
-                        'Pedido: ${pedido['cd_pedido']}',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
                         children: [
-                          SizedBox(height: 4),
-                          Text('Mesa: ${pedido['numero_mesa']}'),
-                          SizedBox(height: 4),
-                          Text('Data: $dtEmissaoFormatada'),
-                          SizedBox(height: 4),
-                          Text('Total: R\$ ${pedido['vr_pedido']}'),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Data Inicial:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text('${DateFormat('dd/MM/yyyy').format(dtInicial)}'),
+                              IconButton(
+                                icon: Icon(Icons.calendar_today, color: Theme.of(context).primaryColor),
+                                onPressed: () => _selectDate(dtInicial, true),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Data Final:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text('${DateFormat('dd/MM/yyyy').format(dtFinal)}'),
+                              IconButton(
+                                icon: Icon(Icons.calendar_today, color: Theme.of(context).primaryColor),
+                                onPressed: () => _selectDate(dtFinal, false),
+                              ),
+                            ],
+                          ),
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Número da Mesa',
+                              labelStyle: TextStyle(color: Theme.of(context).canvasColor),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Theme.of(context).canvasColor),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                numeroMesa = value;
+                              });
+                            },
+                          ),
+                          SizedBox(height: 10),
+                          ElevatedButton.icon(
+                            onPressed: _buscarPedidos,
+                            icon: Icon(Icons.search, color: Colors.white),
+                            label: Text(
+                              'Buscar',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).primaryColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        child: Icon(Icons.receipt_long, color: Colors.white),
-                      ),
                     ),
-                  );
-                },
+                  ),
+                SizedBox(height: 20),
+                Expanded(
+                  child: pedidos.isEmpty
+                      ? Center(
+                    child: Text(
+                      'Nenhum pedido encontrado.',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  )
+                      : ListView.builder(
+                    itemCount: pedidos.length,
+                    itemBuilder: (context, index) {
+                      final pedido = pedidos[index];
+                      DateTime dtEmissao = DateTime.parse(pedido['dt_emissao']);
+                      String dtEmissaoFormatada = DateFormat('dd/MM/yyyy HH:mm:ss').format(dtEmissao);
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        elevation: 3,
+                        margin: EdgeInsets.symmetric(vertical: 8.0),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.all(16.0),
+                          title: Text(
+                            'Pedido: ${pedido['cd_pedido']}',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 4),
+                              Text('Mesa: ${pedido['numero_mesa']}'),
+                              SizedBox(height: 4),
+                              Text('Data: $dtEmissaoFormatada'),
+                              SizedBox(height: 4),
+                              Text('Total: R\$ ${pedido['vr_pedido']}'),
+                            ],
+                          ),
+                          leading: CircleAvatar(
+                            backgroundColor: Theme.of(context).primaryColor,
+                            child: Icon(Icons.receipt_long, color: Colors.white),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total de Pedidos: $totalPedidos',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        'Valor Total: R\$ ${valorTotal.toStringAsFixed(2)}',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (isLoading)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: CircularProgressIndicator(),
               ),
             ),
-            SizedBox(height: 10),
-            // Totalizador de pedidos e valor total
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Total de Pedidos: $totalPedidos',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'Valor Total: R\$ ${valorTotal.toStringAsFixed(2)}',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
