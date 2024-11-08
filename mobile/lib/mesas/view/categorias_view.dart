@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class CategoriasView extends StatelessWidget {
   final List<dynamic> categorias;
   final Function(String) onCategoriaTap;
+  final statusMesa;
 
   const CategoriasView({
     Key? key,
     required this.categorias,
     required this.onCategoriaTap,
+    required this.statusMesa,
   }) : super(key: key);
 
   @override
@@ -24,7 +26,22 @@ class CategoriasView extends StatelessWidget {
       itemBuilder: (context, index) {
         final categoria = categorias[index];
         return GestureDetector(
-          onTap: () => onCategoriaTap(categoria['cd_categoria'].toString()),
+          onTap: () {
+            if (statusMesa == "aguardando pagamento") {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'A mesa está fechada e aguardando pagamento',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  backgroundColor: Colors.red,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            } else {
+              onCategoriaTap(categoria['cd_categoria'].toString());
+            }
+          },
           child: Container(
             margin: const EdgeInsets.all(4.0),
             decoration: BoxDecoration(
