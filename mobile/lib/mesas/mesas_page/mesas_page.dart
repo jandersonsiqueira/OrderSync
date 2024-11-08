@@ -15,6 +15,7 @@ class _MesasPageState extends State<MesasPage> {
   List<dynamic> mesas = [];
   List<dynamic> mesasLivres = [];
   List<dynamic> mesasAndamento = [];
+  List<dynamic> mesasAguardandoPagamento = [];
   String searchQuery = '';
   bool isLoading = true;
 
@@ -51,6 +52,7 @@ class _MesasPageState extends State<MesasPage> {
   void _filterMesas() {
     mesasLivres = mesas.where((mesa) => mesa['status'] == 'livre').toList();
     mesasAndamento = mesas.where((mesa) => mesa['status'] == 'andamento').toList();
+    mesasAguardandoPagamento = mesas.where((mesa) => mesa['status'] == 'aguardando pagamento').toList();
   }
 
   Future<void> _abrirMesa(String mesaId) async {
@@ -109,6 +111,9 @@ class _MesasPageState extends State<MesasPage> {
         mesasAndamento = mesasAndamento
             .where((mesa) => mesa['numero_mesa'].toString().contains(query))
             .toList();
+        mesasAguardandoPagamento = mesasAguardandoPagamento
+            .where((mesa) => mesa['numero_mesa'].toString().contains(query))
+            .toList();
       } else {
         _filterMesas();
       }
@@ -154,6 +159,8 @@ class _MesasPageState extends State<MesasPage> {
                   children: [
                     _buildMesaSection('Mesas em Andamento', mesasAndamento, true),
                     const SizedBox(height: 16),
+                    _buildMesaSection('Mesas Aguardando Pagamento', mesasAguardandoPagamento, false, isAguardandoPagamento: true),
+                    const SizedBox(height: 16),
                     _buildMesaSection('Mesas Livres', mesasLivres, false),
                   ],
                 ),
@@ -165,7 +172,7 @@ class _MesasPageState extends State<MesasPage> {
     );
   }
 
-  Widget _buildMesaSection(String title, List<dynamic> mesas, bool isAndamento) {
+  Widget _buildMesaSection(String title, List<dynamic> mesas, bool isAndamento, {bool isAguardandoPagamento = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -188,13 +195,13 @@ class _MesasPageState extends State<MesasPage> {
             final mesa = mesas[index];
             return GestureDetector(
               onTap: () {
-                if (!isAndamento) {
+                if (!isAndamento && !isAguardandoPagamento) {
                   _abrirMesa(mesa['numero_mesa'].toString());
                 } else {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PedidoPage(mesaId: mesa['numero_mesa'].toString()),
+                      builder: (context) => PedidoPage(mesa: mesa),
                     ),
                   );
                 }
@@ -202,7 +209,11 @@ class _MesasPageState extends State<MesasPage> {
               child: Container(
                 margin: const EdgeInsets.all(4.0),
                 decoration: BoxDecoration(
-                  color: isAndamento ? Colors.green : Colors.grey,
+                  color: isAndamento
+                      ? Colors.green
+                      : isAguardandoPagamento
+                      ? Colors.amber
+                      : Colors.grey,
                   borderRadius: BorderRadius.circular(8),
                   boxShadow: const [
                     BoxShadow(
@@ -215,7 +226,7 @@ class _MesasPageState extends State<MesasPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (!isAndamento)
+                    if (!isAndamento && !isAguardandoPagamento)
                       Text(
                         'ABRIR',
                         style: const TextStyle(
@@ -225,7 +236,9 @@ class _MesasPageState extends State<MesasPage> {
                       ),
                     Text(
                       mesa['numero_mesa'].toString(),
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 18
+                      ),
                     ),
                   ],
                 ),

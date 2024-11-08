@@ -3,6 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../home_page/home_page.dart';
+import '../controller/categorias_controller.dart';
+import '../controller/mesas_controller.dart';
+import '../controller/produtos_controller.dart';
 import '../pedido_parcial/pedidos_parciais_page.dart';
 import '../view/categorias_view.dart';
 import '../view/produtos_view.dart';
@@ -10,9 +13,9 @@ import 'carrinho_pedido_page.dart';
 import 'fechamento_pedido_page.dart';
 
 class PedidoPage extends StatefulWidget {
-  final String mesaId;
+  final Map<String, dynamic> mesa;
 
-  const PedidoPage({Key? key, required this.mesaId}) : super(key: key);
+  PedidoPage({required this.mesa});
 
   @override
   _PedidoPageState createState() => _PedidoPageState();
@@ -25,39 +28,37 @@ class _PedidoPageState extends State<PedidoPage> {
   String? categoriaSelecionada;
   String pesquisa = '';
   TextEditingController _observacaoController = TextEditingController();
+  late String mesaId = widget.mesa['numero_mesa'].toString();
+  late String mesaStatus = widget.mesa['status'].toString();
+  final CategoriasController categoriasController = CategoriasController();
+  final ProdutosController produtosController = ProdutosController();
+  late final MesasController mesasController;
+  late bool temPedidosParciais;
 
   @override
   void initState() {
     super.initState();
-    _fetchCategorias();
-    _fetchProdutos();
+    _loadData();
     _carregarCarrinhoCache();
     _carregarObservacaoCache();
   }
 
-  Future<void> _fetchCategorias() async {
-    final response = await http.get(Uri.parse('https://ordersync.onrender.com/categorias'));
-    if (response.statusCode == 200) {
-      setState(() {
-        categorias = json.decode(response.body);
-        categorias.add({
-          "cd_categoria": 0,
-          "nm_categoria": "Todos os Produtos"
-        });
-      });
-    } else {
-      throw Exception('Falha ao carregar categorias');
-    }
-  }
+  Future<void> _loadData() async {
+    try {
+      final categoriasData = await categoriasController.fetchCategorias();
+      final produtosData = await produtosController.fetchProdutos();
+      final mesaController = MesasController(
+        mesaId: mesaId,
+        context: context,
+      );
 
-  Future<void> _fetchProdutos() async {
-    final response = await http.get(Uri.parse('https://ordersync.onrender.com/produtos'));
-    if (response.statusCode == 200) {
       setState(() {
-        produtos = json.decode(response.body);
+        categorias = categoriasData;
+        produtos = produtosData;
+        mesasController = mesaController;
       });
-    } else {
-      throw Exception('Falha ao carregar produtos');
+    } catch (e) {
+      print('Erro ao carregar dados: $e');
     }
   }
 
@@ -77,12 +78,12 @@ class _PedidoPageState extends State<PedidoPage> {
   void _salvarCarrinhoCache() async {
     final prefs = await SharedPreferences.getInstance();
     final carrinhoEncoded = json.encode(carrinho);
-    prefs.setString('carrinho_${widget.mesaId}', carrinhoEncoded);
+    prefs.setString('carrinho_${mesaId}', carrinhoEncoded);
   }
 
   Future<void> _carregarCarrinhoCache() async {
     final prefs = await SharedPreferences.getInstance();
-    final carrinhoEncoded = prefs.getString('carrinho_${widget.mesaId}');
+    final carrinhoEncoded = prefs.getString('carrinho_${mesaId}');
     if (carrinhoEncoded != null) {
       setState(() {
         carrinho = json.decode(carrinhoEncoded);
@@ -92,7 +93,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
   Future<void> _carregarObservacaoCache() async {
     final prefs = await SharedPreferences.getInstance();
-    final observacao = prefs.getString('observacao_${widget.mesaId}');
+    final observacao = prefs.getString('observacao_${mesaId}');
     if (observacao != null) {
       _observacaoController.text = observacao;
     }
@@ -100,7 +101,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
   void _salvarObservacaoCache() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString('observacao_${widget.mesaId}', _observacaoController.text);
+    prefs.setString('observacao_${mesaId}', _observacaoController.text);
   }
 
   void _adicionarQtdCarrinho(Map<String, dynamic> produto, int quantidade) {
@@ -124,38 +125,20 @@ class _PedidoPageState extends State<PedidoPage> {
     });
   }
 
-
-  void _removerDoCarrinho(dynamic produto) {
-    setState(() {
-      carrinho.remove(produto['cd_produto']);
-    });
-  }
-
-  Future<bool> _temPedidosParciais() async {
-    final response = await http.get(Uri.parse('https://ordersync.onrender.com/pedidos/parcial?numero_mesa=${widget.mesaId}'));
-
-    if (response.statusCode == 200) {
-      final pedidosParciais = json.decode(response.body);
-      return pedidosParciais.isNotEmpty;
-    } else {
-      throw Exception('Falha ao verificar pedidos parciais');
-    }
-  }
-
   void _finalizarAtendimento() async {
-    bool temPedidosParciais = await _temPedidosParciais();
+    temPedidosParciais = await mesasController.verificarPedidosParciais();
 
     if (!temPedidosParciais) {
-      _showAlertaSemPedidosParciais();
+      mesasController.showAlertaSemPedidosParciais();
       return;
     }
 
-    String cdPedido = DateTime.now().toString().replaceAll('-', '').replaceAll(' ', '').replaceAll(':', '').replaceAll('.', '').substring(0, 14) + widget.mesaId;
+    String cdPedido = DateTime.now().toString().replaceAll('-', '').replaceAll(' ', '').replaceAll(':', '').replaceAll('.', '').substring(0, 14) + mesaId;
     String dtEmissao = DateTime.now().toIso8601String();
 
     final pedidoData = {
       "cd_pedido": cdPedido,
-      "numero_mesa": widget.mesaId,
+      "numero_mesa": mesaId,
       "dt_emissao": dtEmissao,
     };
 
@@ -167,27 +150,13 @@ class _PedidoPageState extends State<PedidoPage> {
       );
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Atendimento finalizado com sucesso!',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
-        );
         setState(() {
           carrinho.clear();
           _observacaoController.clear();
           _salvarObservacaoCache();
         });
-        _finalizarMesa(widget.mesaId);
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-              (Route<dynamic> route) => false,
-        );
+        String msgAlerta = 'Atendimento finalizado com sucesso!';
+        _statusMesa(mesaId, 'livre', msgAlerta);
       } else {
         throw Exception('Falha ao finalizar atendimento');
       }
@@ -196,41 +165,37 @@ class _PedidoPageState extends State<PedidoPage> {
     }
   }
 
-  void _showAlertaSemPedidosParciais() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text('Sem Pedidos Parciais'),
-          content: Text('Não há pedidos parciais para esta mesa.'),
-          actions: [
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-
-  Future<void> _finalizarMesa(String mesaId) async {
+  Future<void> _statusMesa(String mesaId, String status, String msgAlerta) async {
     final response = await http.put(
       Uri.parse('https://ordersync.onrender.com/mesas/$mesaId'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
       body: jsonEncode(<String, String>{
-        'status': 'livre',
+        'status': '$status',
         'observacao': '',
       }),
     );
 
-    if (response.statusCode != 200) {
-      throw Exception('Falha ao finalizar atendimento');
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            msgAlerta,
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => HomePage()),
+            (Route<dynamic> route) => false,
+      );
+    } else {
+      throw Exception('Falha ao mudar o status da mesa');
     }
   }
 
@@ -259,7 +224,7 @@ class _PedidoPageState extends State<PedidoPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-              'Pedido - Mesa ${widget.mesaId}',
+              'Pedido - Mesa ${mesaId}',
               style: const TextStyle(
                 color: Colors.white,
               )
@@ -276,7 +241,7 @@ class _PedidoPageState extends State<PedidoPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => PedidosParciaisPage(mesaId: widget.mesaId),
+                    builder: (context) => PedidosParciaisPage(mesaId: mesaId),
                   ),
                 );
               },
@@ -327,7 +292,8 @@ class _PedidoPageState extends State<PedidoPage> {
             Expanded(
               child: categoriaSelecionada == null ? _buildCategoriasView() : _buildProdutosView(),
             ),
-            if (categoriaSelecionada != null) _buildCarrinhoResumo(),
+            if (categoriaSelecionada != null)
+              _buildCarrinhoResumo(),
           ],
         ),
         floatingActionButton: categoriaSelecionada == null
@@ -359,14 +325,57 @@ class _PedidoPageState extends State<PedidoPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (mesaStatus == 'andamento') ...[
               ListTile(
                 leading: Icon(Icons.check),
-                title: Text('Finalizar Atendimento'),
+                title: Text('Fechar Mesa'),
+                onTap: () async {
+                  temPedidosParciais = await mesasController.verificarPedidosParciais();
+                  if (!temPedidosParciais) {
+                    mesasController.showAlertaSemPedidosParciais();
+                    return;
+                  } else {
+                    String msgAlerta = 'Mesa fechada, aguardando pagamento';
+                    _statusMesa(mesaId, 'aguardando pagamento', msgAlerta);
+                    Navigator.pop(context);
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.cancel),
+                  title: Text('Cancelar Mesa'),
+                  onTap: () async {
+                    temPedidosParciais = await mesasController.verificarPedidosParciais();
+                    if (temPedidosParciais) {
+                      mesasController.showAlertaComPedidosParciais();
+                      return;
+                    } else {
+                      String msgAlerta = 'Mesa cancelada com sucesso';
+                      _statusMesa(mesaId, 'livre', msgAlerta);
+                      Navigator.pop(context);
+                    }
+                  },
+                ),
+              ],
+              if (mesaStatus == 'aguardando pagamento') ...[
+                ListTile(
+                  leading: Icon(Icons.payment),
+                  title: Text('Realizar Pagamento'),
+                  onTap: () {
+                    _finalizarAtendimento();
+                    Navigator.pop(context);
+                  },
+                ),
+              ListTile(
+                leading: Icon(Icons.refresh),
+                title: Text('Reabrir Mesa'),
                 onTap: () {
-                  _finalizarAtendimento();
+                  String msgAlerta = 'Mesa reaberta com sucesso';
+                  _statusMesa(mesaId, 'andamento', msgAlerta);
                   Navigator.pop(context);
-                },
-              ),
+                  },
+                ),
+              ]
             ],
           ),
         );
@@ -378,6 +387,7 @@ class _PedidoPageState extends State<PedidoPage> {
     return CategoriasView(
       categorias: categorias,
       onCategoriaTap: _showProdutos,
+      statusMesa: mesaStatus,
     );
   }
 
@@ -396,7 +406,6 @@ class _PedidoPageState extends State<PedidoPage> {
     );
   }
 
-
   Widget _buildCarrinhoResumo() {
     return CarrinhoPedidoPage(
       subtotal: _getTotalCarrinho(),
@@ -408,7 +417,7 @@ class _PedidoPageState extends State<PedidoPage> {
           MaterialPageRoute(
             builder: (context) => FechamentoPedidoPage(
               carrinho: carrinho,
-              mesaId: widget.mesaId,
+              mesaId: mesaId,
             ),
           ),
         );
