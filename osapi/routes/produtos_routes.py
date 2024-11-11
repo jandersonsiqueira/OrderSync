@@ -8,16 +8,30 @@ produtos_bp = Blueprint('produtos', __name__)
 
 @produtos_bp.route('/produtos', methods=['POST'])
 def criar_produto():
-    dados = request.json
-    novo_produto = {
-        "cd_produto": dados['cd_produto'],
-        "nm_produto": dados['nm_produto'],
-        "pr_custo": dados['pr_custo'],
-        "pr_venda": dados['pr_venda'],
-        "cd_categoria": dados['cd_categoria']
-    }
-    produtos_collection.insert_one(novo_produto)
-    return jsonify({"msg": "Produto criado com sucesso!", "produto": novo_produto}), 201
+    try:
+        dados = request.json
+        if not dados or 'nm_produto' not in dados or 'pr_custo' not in dados or 'pr_venda' not in dados or 'cd_categoria' not in dados:
+            return jsonify({"error": "Campos obrigatórios não foram fornecidos"}), 400
+
+        ultimo_produto = produtos_collection.find_one(sort=[("cd_produto", -1)])
+        novo_cd_produto = 1 if not ultimo_produto else ultimo_produto.get('cd_produto', 0) + 1
+
+        novo_produto = {
+            "cd_produto": novo_cd_produto,
+            "nm_produto": dados['nm_produto'],
+            "pr_custo": dados['pr_custo'],
+            "pr_venda": dados['pr_venda'],
+            "cd_categoria": dados['cd_categoria']
+        }
+
+        resultado = produtos_collection.insert_one(novo_produto)
+
+        novo_produto['_id'] = str(resultado.inserted_id)
+
+        return jsonify({"msg": "Produto criado com sucesso!", "produto": novo_produto}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @produtos_bp.route('/produtos', methods=['GET'])
 def listar_produtos():

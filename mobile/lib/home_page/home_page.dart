@@ -33,34 +33,51 @@ class HomePage extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              _bottomNavigationBarButton(
-                context,
-                text: 'Mesas',
-                icon: FontAwesomeIcons.table,
-                onPressed: () {
-                  Navigator.pushNamed(context, '/mesas_page');
-                },
+              Expanded(
+                child: _bottomNavigationBarButton(
+                  context,
+                  text: 'Mesas',
+                  icon: FontAwesomeIcons.table,
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/mesas_page');
+                  },
+                ),
               ),
-              _bottomNavigationBarButton(
-                context,
-                text: 'Vendas',
-                icon: FontAwesomeIcons.coins,
-                onPressed: () {
-                  Navigator.pushNamed(context, '/vendas_page');
-                },
+              Expanded(
+                child: _bottomNavigationBarButton(
+                  context,
+                  text: 'Vendas',
+                  icon: FontAwesomeIcons.coins,
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/vendas_page');
+                  },
+                ),
               ),
-              _bottomNavigationBarButton(
-                context,
-                text: 'Cardápio',
-                icon: FontAwesomeIcons.bars,
-                onPressed: () {
-                  // Ação para o botão "Cardápio"
-                },
+              Expanded(
+                child: _bottomNavigationBarButton(
+                  context,
+                  text: 'Cardápio',
+                  icon: FontAwesomeIcons.bars,
+                  onPressed: () {
+                    // Ação para o botão "Cardápio"
+                  },
+                ),
+              ),
+              Expanded(
+                child: _bottomNavigationBarButton(
+                  context,
+                  text: 'Admin',
+                  icon: FontAwesomeIcons.userShield,
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/admin_page');
+                  },
+                ),
               ),
             ],
           ),
         ),
       ),
+
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:order_sync/vendas/vendas_page.dart';
+import 'admin/admin_page.dart';
 import 'home_page/home_page.dart';
 import 'mesas/mesas_page/mesas_page.dart';
 
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/mesas_page': (context) => MesasPage(),
         '/vendas_page': (context) => VendasPage(),
+        '/admin_page': (context) => const AdminPage(),
       },
     );
   }
