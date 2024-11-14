@@ -17,14 +17,14 @@ class MyApp extends StatelessWidget {
       title: 'OrderSync',
       theme: ThemeData(
         brightness: Brightness.light,
-        primaryColor: Colors.teal,
+        primaryColor: Colors.teal.shade300,
         cardColor: Colors.white,
         shadowColor: Colors.black54,
         canvasColor: Colors.black,
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Colors.teal,
+        primaryColor: Colors.teal.shade700,
         cardColor: Colors.grey[850],
         shadowColor: Colors.black,
         canvasColor: Colors.white,

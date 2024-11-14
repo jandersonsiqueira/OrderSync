@@ -187,7 +187,13 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cadastro de Categorias'),
+        title: const Text(
+            'Cadastro de Categorias',
+            style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).primaryColor,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

@@ -266,7 +266,13 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cadastro de Produtos'),
+        title: const Text(
+            'Cadastro de Produtos',
+            style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).primaryColor,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
