@@ -1,5 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import '../variaveis_globais.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -15,13 +19,44 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> _register() async {
     try {
-      await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
-      Navigator.pop(context);
+
+      if (userCredential.user != null) {
+        String uid = userCredential.user!.uid;
+
+        await VariaveisGlobais.saveUidToCache(uid);
+
+        await createAdminDatabase(uid);
+        Navigator.pop(context);
+      } else {
+        _showError('Erro ao criar usuário. Tente novamente.');
+      }
     } catch (e) {
       _showError('Erro ao cadastrar: $e');
+    }
+  }
+
+
+  Future<void> createAdminDatabase(String token) async {
+    final response = await http.post(
+      Uri.parse('http://10.0.0.31:5000/create-admin'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(<String, String>{
+        'token': token,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      // Sucesso ao criar base de dados
+      print('Base de dados criada com sucesso!');
+    } else {
+      // Erro ao criar base de dados
+      print('Erro ao criar base de dados: ${response.body}');
     }
   }
 
