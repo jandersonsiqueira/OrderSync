@@ -3,17 +3,19 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
 class MesasController {
+  final String uid;
   final String mesaId;
   final BuildContext context;
 
   MesasController({
+    required this.uid,
     required this.mesaId,
     required this.context,
   });
 
   Future<bool> _temPedidosParciais() async {
     final response = await http.get(
-      Uri.parse('https://ordersync.onrender.com/pedidos/parcial?numero_mesa=$mesaId'),
+      Uri.parse('https://ordersync.onrender.com/$uid/pedidos/parcial?numero_mesa=$mesaId'),
     );
 
     if (response.statusCode == 200) {

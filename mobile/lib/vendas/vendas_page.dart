@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../variaveis_globais.dart';
+
 class VendasPage extends StatefulWidget {
   @override
   _VendasPageState createState() => _VendasPageState();
@@ -15,11 +17,23 @@ class _VendasPageState extends State<VendasPage> {
   List<dynamic> pedidos = [];
   bool showFilters = false;
   bool isLoading = false;
+  String? uid;
 
   @override
   void initState() {
     super.initState();
-    _buscarPedidos();
+    _fetchCacheUid();
+  }
+
+  Future<void> _fetchCacheUid() async {
+    String? cachedUid = await VariaveisGlobais.getUidFromCache();
+    setState(() {
+      uid = cachedUid;
+    });
+
+    if (uid != null) {
+      _buscarPedidos();
+    }
   }
 
   Future<void> _buscarPedidos() async {
@@ -28,7 +42,7 @@ class _VendasPageState extends State<VendasPage> {
     });
 
     final response = await http.get(
-      Uri.parse('https://ordersync.onrender.com/pedidos/final?dt_inicial=${DateFormat('yyyy-MM-dd').format(dtInicial)}&dt_final=${DateFormat('yyyy-MM-dd').format(dtFinal)}&numero_mesa=$numeroMesa'),
+      Uri.parse('https://ordersync.onrender.com/$uid/pedidos/final?dt_inicial=${DateFormat('yyyy-MM-dd').format(dtInicial)}&dt_final=${DateFormat('yyyy-MM-dd').format(dtFinal)}&numero_mesa=$numeroMesa'),
     );
 
     if (response.statusCode == 200) {

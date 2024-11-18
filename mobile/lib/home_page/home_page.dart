@@ -4,6 +4,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../variaveis_globais.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -22,17 +24,29 @@ class _HomePageState extends State<HomePage> {
   Map<String, String> mesasMap = {};
   List<String> produtosLegends = [];
   List<String> mesasLegends = [];
+  String? uid;
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+    _fetchCacheUid();
   }
 
-  Future<void> fetchData() async {
-    final pedidosUrl = 'https://ordersync.onrender.com/pedidos/final';
-    final produtosUrl = 'https://ordersync.onrender.com/produtos';
-    final mesasUrl = 'https://ordersync.onrender.com/mesas';
+  Future<void> _fetchCacheUid() async {
+    String? cachedUid = await VariaveisGlobais.getUidFromCache();
+    setState(() {
+      uid = cachedUid;
+    });
+
+    if (uid != null) {
+      _fetchData();
+    }
+  }
+
+  Future<void> _fetchData() async {
+    final pedidosUrl = 'https://ordersync.onrender.com/$uid/pedidos/final';
+    final produtosUrl = 'https://ordersync.onrender.com/$uid/produtos';
+    final mesasUrl = 'https://ordersync.onrender.com/$uid/mesas';
 
     try {
       final pedidosResponse = await http.get(Uri.parse(pedidosUrl));

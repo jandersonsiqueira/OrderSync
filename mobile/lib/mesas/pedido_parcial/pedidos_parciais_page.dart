@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:order_sync/mesas/pedido_parcial/pedidos_parciais_detalhes_page.dart';
 
+import '../../variaveis_globais.dart';
+
 class PedidosParciaisPage extends StatefulWidget {
   final String mesaId;
 
@@ -16,15 +18,27 @@ class PedidosParciaisPage extends StatefulWidget {
 class _PedidosParciaisPageState extends State<PedidosParciaisPage> {
   List<dynamic> pedidos = [];
   bool isLoading = true;
+  String? uid;
 
   @override
   void initState() {
     super.initState();
-    fetchPedidos();
+    _fetchCacheUid();
   }
 
-  Future<void> fetchPedidos() async {
-    final response = await http.get(Uri.parse('https://ordersync.onrender.com/pedidos/parcial?numero_mesa=${widget.mesaId}'));
+  Future<void> _fetchCacheUid() async {
+    String? cachedUid = await VariaveisGlobais.getUidFromCache();
+    setState(() {
+      uid = cachedUid;
+    });
+
+    if (uid != null) {
+      _fetchPedidos();
+    }
+  }
+
+  Future<void> _fetchPedidos() async {
+    final response = await http.get(Uri.parse('https://ordersync.onrender.com/$uid/pedidos/parcial?numero_mesa=${widget.mesaId}'));
 
     if (response.statusCode == 200) {
       setState(() {

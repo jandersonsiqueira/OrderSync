@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../home_page/home_page.dart';
+import '../../variaveis_globais.dart';
 import '../controller/categorias_controller.dart';
 import '../controller/mesas_controller.dart';
 import '../controller/produtos_controller.dart';
@@ -34,20 +35,33 @@ class _PedidoPageState extends State<PedidoPage> {
   final ProdutosController produtosController = ProdutosController();
   late final MesasController mesasController;
   late bool temPedidosParciais;
+  late String uid;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _fetchCacheUid();
     _carregarCarrinhoCache();
     _carregarObservacaoCache();
   }
 
+  Future<void> _fetchCacheUid() async {
+    String? cachedUid = await VariaveisGlobais.getUidFromCache();
+    setState(() {
+      uid = cachedUid!;
+    });
+
+    if (uid != null) {
+      _loadData();
+    }
+  }
+
   Future<void> _loadData() async {
     try {
-      final categoriasData = await categoriasController.fetchCategorias();
-      final produtosData = await produtosController.fetchProdutos();
+      final categoriasData = await categoriasController.fetchCategorias(uid!);
+      final produtosData = await produtosController.fetchProdutos(uid!);
       final mesaController = MesasController(
+        uid: uid,
         mesaId: mesaId,
         context: context,
       );
@@ -144,7 +158,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://ordersync.onrender.com/pedidos/final'),
+        Uri.parse('https://ordersync.onrender.com/$uid/pedidos/final'),
         headers: {"Content-Type": "application/json"},
         body: json.encode(pedidoData),
       );
@@ -167,7 +181,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
   Future<void> _statusMesa(String mesaId, String status, String msgAlerta) async {
     final response = await http.put(
-      Uri.parse('https://ordersync.onrender.com/mesas/$mesaId'),
+      Uri.parse('https://ordersync.onrender.com/$uid/mesas/$mesaId'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

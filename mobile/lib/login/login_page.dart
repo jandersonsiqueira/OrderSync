@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../home_page/home_page.dart';
+import '../variaveis_globais.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -18,10 +19,14 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _signInWithEmail() async {
     try {
-      await _auth.signInWithEmailAndPassword(
+      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
+      final uid = userCredential.user?.uid;
+      if (uid != null) {
+        await VariaveisGlobais.saveUidToCache(uid);
+      }
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
     } catch (e) {
       _showError('Erro ao fazer login: $e');
@@ -30,6 +35,8 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _signInWithGoogle() async {
     try {
+      await GoogleSignIn().signOut();
+
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
       final OAuthCredential credential = GoogleAuthProvider.credential(
@@ -37,7 +44,11 @@ class _LoginPageState extends State<LoginPage> {
         idToken: googleAuth.idToken,
       );
 
-      await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final uid = userCredential.user?.uid;
+      if (uid != null) {
+        await VariaveisGlobais.saveUidToCache(uid);
+      }
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
     } catch (e) {
       _showError('Erro ao fazer login com Google: $e');

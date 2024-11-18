@@ -42,7 +42,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Future<void> createAdminDatabase(String token) async {
     final response = await http.post(
-      Uri.parse('http://10.0.0.31:5000/create-admin'),
+      Uri.parse('https://ordersync.onrender.com/create-admin'),
       headers: <String, String>{
         'Content-Type': 'application/json',
       },
