@@ -1,15 +1,16 @@
-# produtos_routes.py
 from flask import Blueprint, jsonify, request
 from bson.objectid import ObjectId
-from ..db import produtos_collection  # Importa do db.py
+from ..db import get_collection
 
 # Criação do Blueprint para produtos
 produtos_bp = Blueprint('produtos', __name__)
 
-@produtos_bp.route('/produtos', methods=['POST'])
-def criar_produto():
+@produtos_bp.route('/<uid>/produtos', methods=['POST'])
+def criar_produto(uid):
     try:
         dados = request.json
+        produtos_collection = get_collection(uid, 'produto')
+
         if not dados or 'nm_produto' not in dados or 'pr_custo' not in dados or 'pr_venda' not in dados or 'cd_categoria' not in dados:
             return jsonify({"error": "Campos obrigatórios não foram fornecidos"}), 400
 
@@ -33,34 +34,46 @@ def criar_produto():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@produtos_bp.route('/produtos', methods=['GET'])
-def listar_produtos():
-    produtos = list(produtos_collection.find())
-    for produto in produtos:
-        produto['_id'] = str(produto['_id'])
-    return jsonify(produtos), 200
+@produtos_bp.route('/<uid>/produtos', methods=['GET'])
+def listar_produtos(uid):
+    try:
+        produtos_collection = get_collection(uid, 'produto')
+        produtos = list(produtos_collection.find())
+        for produto in produtos:
+            produto['_id'] = str(produto['_id'])
+        return jsonify(produtos), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-@produtos_bp.route('/produtos/<int:cd_produto>', methods=['GET'])
-def consultar_produto(cd_produto):
-    produto = produtos_collection.find_one({"cd_produto": cd_produto})
-    if produto:
-        produto['_id'] = str(produto['_id'])
-        return jsonify(produto), 200
-    return jsonify({"msg": "Produto não encontrado!"}), 404
+@produtos_bp.route('/<uid>/produtos/<int:cd_produto>', methods=['GET'])
+def consultar_produto(uid, cd_produto):
+    try:
+        produtos_collection = get_collection(uid, 'produto')
+        produto = produtos_collection.find_one({"cd_produto": cd_produto})
+        if produto:
+            produto['_id'] = str(produto['_id'])
+            return jsonify(produto), 200
+        return jsonify({"msg": "Produto não encontrado!"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-@produtos_bp.route('/produtos/<int:cd_produto>', methods=['PUT'])
-def atualizar_produto(cd_produto):
-    dados = request.json
-    produto = produtos_collection.find_one({"cd_produto": cd_produto})
-    if produto:
-        produtos_collection.update_one(
-            {"cd_produto": cd_produto},
-            {"$set": {
-                "nm_produto": dados.get('nm_produto', produto['nm_produto']),
-                "pr_custo": dados.get('pr_custo', produto['pr_custo']),
-                "pr_venda": dados.get('pr_venda', produto['pr_venda']),
-                "cd_categoria": dados.get('cd_categoria', produto['cd_categoria'])
-            }}
-        )
-        return jsonify({"msg": "Produto atualizado com sucesso!"}), 200
-    return jsonify({"msg": "Produto não encontrado!"}), 404
+@produtos_bp.route('/<uid>/produtos/<int:cd_produto>', methods=['PUT'])
+def atualizar_produto(uid, cd_produto):
+    try:
+        produtos_collection = get_collection(uid, 'produto')
+        dados = request.json
+        produto = produtos_collection.find_one({"cd_produto": cd_produto})
+        if produto:
+            produtos_collection.update_one(
+                {"cd_produto": cd_produto},
+                {"$set": {
+                    "nm_produto": dados.get('nm_produto', produto['nm_produto']),
+                    "pr_custo": dados.get('pr_custo', produto['pr_custo']),
+                    "pr_venda": dados.get('pr_venda', produto['pr_venda']),
+                    "cd_categoria": dados.get('cd_categoria', produto['cd_categoria'])
+                }}
+            )
+            return jsonify({"msg": "Produto atualizado com sucesso!"}), 200
+        return jsonify({"msg": "Produto não encontrado!"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
