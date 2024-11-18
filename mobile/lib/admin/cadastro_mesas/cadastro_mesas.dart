@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../variaveis_globais.dart';
+
 class CadastroMesasPage extends StatefulWidget {
   const CadastroMesasPage({Key? key}) : super(key: key);
 
@@ -13,16 +15,28 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
   List<dynamic> _mesas = [];
   bool _isLoading = true;
   String _pesquisa = '';
+  String? uid;
 
   @override
   void initState() {
     super.initState();
-    _fetchMesas();
+    _fetchCacheUid();
+  }
+
+  Future<void> _fetchCacheUid() async {
+    String? cachedUid = await VariaveisGlobais.getUidFromCache();
+    setState(() {
+      uid = cachedUid;
+    });
+
+    if (uid != null) {
+      _fetchMesas();
+    }
   }
 
   Future<void> _fetchMesas() async {
     try {
-      final response = await http.get(Uri.parse('https://ordersync.onrender.com/mesas'));
+      final response = await http.get(Uri.parse('https://ordersync.onrender.com/$uid/mesas'));
 
       if (response.statusCode == 200) {
         setState(() {
@@ -60,7 +74,13 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cadastro de Mesas'),
+        title: const Text(
+          'Cadastro de Mesas',
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).primaryColor,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [

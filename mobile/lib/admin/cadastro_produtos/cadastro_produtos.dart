@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../variaveis_globais.dart';
+
 class CadastroProdutosPage extends StatefulWidget {
   const CadastroProdutosPage({Key? key}) : super(key: key);
 
@@ -14,12 +16,24 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
   List<dynamic> _categorias = [];
   bool _isLoading = true;
   String _pesquisa = '';
+  String? uid;
 
   @override
   void initState() {
     super.initState();
-    _fetchCategorias();
-    _fetchProdutos();
+    _fetchCacheUid();
+  }
+
+  Future<void> _fetchCacheUid() async {
+    String? cachedUid = await VariaveisGlobais.getUidFromCache();
+    setState(() {
+      uid = cachedUid;
+    });
+
+    if (uid != null) {
+      _fetchCategorias();
+      _fetchProdutos();
+    }
   }
 
   Future<void> _fetchProdutos() async {
@@ -28,7 +42,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
         _isLoading = true;
       });
       final response = await http.get(
-        Uri.parse('https://ordersync.onrender.com/produtos'),
+        Uri.parse('https://ordersync.onrender.com/$uid/produtos'),
       );
 
       if (response.statusCode == 200) {
@@ -50,7 +64,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
   Future<void> _fetchCategorias() async {
     try {
       final response = await http.get(
-        Uri.parse('https://ordersync.onrender.com/categorias'),
+        Uri.parse('https://ordersync.onrender.com/$uid/categorias'),
       );
 
       if (response.statusCode == 200) {
@@ -184,7 +198,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
       ) async {
     try {
       final response = await http.post(
-        Uri.parse('https://ordersync.onrender.com/produtos'),
+        Uri.parse('https://ordersync.onrender.com/$uid/produtos'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'nm_produto': nome,
@@ -220,7 +234,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
       ) async {
     try {
       final response = await http.put(
-        Uri.parse('https://ordersync.onrender.com/produtos/$id'),
+        Uri.parse('https://ordersync.onrender.com/$uid/produtos/$id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'nm_produto': nome,
@@ -266,7 +280,13 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cadastro de Produtos'),
+        title: const Text(
+            'Cadastro de Produtos',
+            style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).primaryColor,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [

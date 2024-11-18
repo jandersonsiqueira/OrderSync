@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../variaveis_globais.dart';
 import '../pedido/pedido_page.dart';
 
 class MesasPage extends StatefulWidget {
@@ -18,11 +19,23 @@ class _MesasPageState extends State<MesasPage> {
   List<dynamic> mesasAguardandoPagamento = [];
   String searchQuery = '';
   bool isLoading = true;
+  String? uid;
 
   @override
   void initState() {
     super.initState();
-    _fetchMesas();
+    _fetchCacheUid();
+  }
+
+  Future<void> _fetchCacheUid() async {
+    String? cachedUid = await VariaveisGlobais.getUidFromCache();
+    setState(() {
+      uid = cachedUid;
+    });
+
+    if (uid != null) {
+      _fetchMesas();
+    }
   }
 
   Future<void> _fetchMesas() async {
@@ -31,7 +44,7 @@ class _MesasPageState extends State<MesasPage> {
     });
 
     try {
-      final response = await http.get(Uri.parse('https://ordersync.onrender.com/mesas'));
+      final response = await http.get(Uri.parse('https://ordersync.onrender.com/$uid/mesas'));
       if (response.statusCode == 200) {
         setState(() {
           mesas = json.decode(response.body);
@@ -62,7 +75,7 @@ class _MesasPageState extends State<MesasPage> {
 
     try {
       final response = await http.put(
-        Uri.parse('https://ordersync.onrender.com/mesas/$mesaId'),
+        Uri.parse('https://ordersync.onrender.com/$uid/mesas/$mesaId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

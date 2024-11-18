@@ -4,6 +4,8 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../variaveis_globais.dart';
+
 class FechamentoPedidoPage extends StatefulWidget {
   final Map<String, dynamic> carrinho;
   final String mesaId;
@@ -17,6 +19,20 @@ class FechamentoPedidoPage extends StatefulWidget {
 class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
 
   bool isLoading = false;
+  String? uid;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCacheUid();
+  }
+
+  Future<void> _fetchCacheUid() async {
+    String? cachedUid = await VariaveisGlobais.getUidFromCache();
+    setState(() {
+      uid = cachedUid;
+    });
+  }
 
   Future<void> finalizarPedido(BuildContext context) async {
     setState(() {
@@ -48,7 +64,7 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://ordersync.onrender.com/pedidos/parcial'),
+        Uri.parse('https://ordersync.onrender.com/$uid/pedidos/parcial'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -270,7 +286,7 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: ElevatedButton(
-                  onPressed: isLoading ? null : () => finalizarPedido(context),
+                  onPressed: isLoading && uid != null ? null : () => finalizarPedido(context),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor,
                     padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),

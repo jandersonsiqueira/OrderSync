@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../../variaveis_globais.dart';
+
 class CadastroCategoriasPage extends StatefulWidget {
   const CadastroCategoriasPage({Key? key}) : super(key: key);
 
@@ -12,12 +14,23 @@ class CadastroCategoriasPage extends StatefulWidget {
 class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
   List<dynamic> _categorias = [];
   bool _isLoading = true;
-  bool _isProcessing = false;
+  String? uid;
 
   @override
   void initState() {
     super.initState();
-    _fetchCategorias();
+    _fetchCacheUid();
+  }
+
+  Future<void> _fetchCacheUid() async {
+    String? cachedUid = await VariaveisGlobais.getUidFromCache();
+    setState(() {
+      uid = cachedUid;
+    });
+
+    if (uid != null) {
+      _fetchCategorias();
+    }
   }
 
   Future<void> _fetchCategorias() async {
@@ -26,7 +39,7 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
         _isLoading = true;
       });
       final response = await http.get(
-        Uri.parse('https://ordersync.onrender.com/categorias'),
+        Uri.parse('https://ordersync.onrender.com/$uid/categorias'),
       );
 
       if (response.statusCode == 200) {
@@ -86,9 +99,6 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
               ElevatedButton(
                 onPressed: () async {
                   if (_nomeController.text.isEmpty) return;
-                  setState(() {
-                    _isProcessing = true;
-                  });
 
                   _showLoadingIndicator();
 
@@ -100,9 +110,6 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
 
                   Navigator.of(context).pop();
                   Navigator.of(context).pop();
-                  setState(() {
-                    _isProcessing = false;
-                  });
                 },
                 child: Text(isEditing ? 'Atualizar' : 'Adicionar'),
               ),
@@ -128,7 +135,7 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
   Future<void> _addCategoria(String nome) async {
     try {
       final response = await http.post(
-        Uri.parse('https://ordersync.onrender.com/categorias'),
+        Uri.parse('https://ordersync.onrender.com/$uid/categorias'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'nm_categoria': nome}),
       );
@@ -149,7 +156,7 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
   Future<void> _updateCategoria(int id, String nome) async {
     try {
       final response = await http.put(
-        Uri.parse('https://ordersync.onrender.com/categorias/$id'),
+        Uri.parse('https://ordersync.onrender.com/$uid/categorias/$id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'nm_categoria': nome}),
       );
@@ -187,7 +194,13 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cadastro de Categorias'),
+        title: const Text(
+            'Cadastro de Categorias',
+            style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        backgroundColor: Theme.of(context).primaryColor,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
