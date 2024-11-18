@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'package:order_sync/mesas/pedido_parcial/pedidos_detalhes_page.dart';
+import 'package:order_sync/mesas/pedido_parcial/pedidos_parciais_detalhes_page.dart';
 
 class PedidosParciaisPage extends StatefulWidget {
   final String mesaId;
