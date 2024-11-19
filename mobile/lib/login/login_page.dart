@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../home_page/home_page.dart';
 import '../variaveis_globais.dart';
+import 'admin_service.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -38,7 +39,12 @@ class _LoginPageState extends State<LoginPage> {
       await GoogleSignIn().signOut();
 
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      final GoogleSignInAuthentication googleAuth = await googleUser!.authentication;
+      if (googleUser == null) {
+        _showError('Login cancelado pelo usuário.');
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -46,9 +52,15 @@ class _LoginPageState extends State<LoginPage> {
 
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
       final uid = userCredential.user?.uid;
+
       if (uid != null) {
         await VariaveisGlobais.saveUidToCache(uid);
+
+        if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+          await AdminService.createAdminDatabase(uid);
+        }
       }
+
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
     } catch (e) {
       _showError('Erro ao fazer login com Google: $e');

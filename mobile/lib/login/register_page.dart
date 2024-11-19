@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import '../variaveis_globais.dart';
+import 'admin_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -29,34 +30,14 @@ class _RegisterPageState extends State<RegisterPage> {
 
         await VariaveisGlobais.saveUidToCache(uid);
 
-        await createAdminDatabase(uid);
+        await AdminService.createAdminDatabase(uid);
+
         Navigator.pop(context);
       } else {
         _showError('Erro ao criar usuário. Tente novamente.');
       }
     } catch (e) {
       _showError('Erro ao cadastrar: $e');
-    }
-  }
-
-
-  Future<void> createAdminDatabase(String token) async {
-    final response = await http.post(
-      Uri.parse('https://ordersync.onrender.com/create-admin'),
-      headers: <String, String>{
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(<String, String>{
-        'token': token,
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      // Sucesso ao criar base de dados
-      print('Base de dados criada com sucesso!');
-    } else {
-      // Erro ao criar base de dados
-      print('Erro ao criar base de dados: ${response.body}');
     }
   }
 
