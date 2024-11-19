@@ -17,6 +17,9 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
   String _pesquisa = '';
   String? uid;
 
+  final TextEditingController _numeroMesaController = TextEditingController();
+  final TextEditingController _quantidadeMesasController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +55,124 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
       });
       _showErrorDialog('Erro ao buscar mesas: $e');
     }
+  }
+
+  Future<void> _addMesa(String numeroMesa) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://ordersync.onrender.com/$uid/mesas'),
+        headers: <String, String>{'Content-Type': 'application/json'},
+        body: jsonEncode({'numero_mesa': numeroMesa}),
+      );
+
+      if (response.statusCode == 201) {
+        _fetchMesas();
+        Navigator.pop(context);
+      } else {
+        _showErrorDialog('Erro ao adicionar mesa: ${response.body}');
+      }
+    } catch (e) {
+      _showErrorDialog('Erro ao adicionar mesa: $e');
+    }
+  }
+
+  Future<void> _addMesasEmLote(int quantidade) async {
+    try {
+      // Calcula o número inicial com base na última mesa
+      int numeroInicial = _mesas.isNotEmpty
+          ? _mesas.map((mesa) => int.tryParse(mesa['numero_mesa'] ?? '0') ?? 0).reduce((a, b) => a > b ? a : b) + 1
+          : 1;
+
+      List<Map<String, dynamic>> mesas = List.generate(
+        quantidade,
+            (index) => {'numero_mesa': (numeroInicial + index).toString()},
+      );
+
+      final response = await http.post(
+        Uri.parse('https://ordersync.onrender.com/$uid/mesas'),
+        headers: <String, String>{'Content-Type': 'application/json'},
+        body: jsonEncode(mesas),
+      );
+
+      if (response.statusCode == 201) {
+        _fetchMesas(); // Atualiza a lista de mesas
+        Navigator.pop(context);
+      } else {
+        _showErrorDialog('Erro ao adicionar mesas em lote: ${response.body}');
+      }
+    } catch (e) {
+      _showErrorDialog('Erro ao adicionar mesas em lote: $e');
+    }
+  }
+
+  void _showAddMesaDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Adicionar Mesa'),
+        content: TextField(
+          controller: _numeroMesaController,
+          decoration: const InputDecoration(labelText: 'Número da Mesa'),
+          keyboardType: TextInputType.number,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              String numeroMesa = _numeroMesaController.text.trim();
+              if (numeroMesa.isEmpty) {
+                _showErrorDialog('Por favor, insira um número para a mesa.');
+                return;
+              }
+
+              // Verifica se a mesa já existe
+              bool mesaExiste = _mesas.any((mesa) => mesa['numero_mesa'] == numeroMesa);
+
+              if (mesaExiste) {
+                _showErrorDialog('Essa mesa já existe!');
+              } else {
+                _addMesa(numeroMesa);
+              }
+            },
+            child: const Text('Adicionar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddMesasEmLoteDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Adicionar Mesas em Lote'),
+        content: TextField(
+          controller: _quantidadeMesasController,
+          decoration: const InputDecoration(labelText: 'Quantidade de Mesas'),
+          keyboardType: TextInputType.number,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (_quantidadeMesasController.text.isNotEmpty) {
+                int? quantidade = int.tryParse(_quantidadeMesasController.text);
+                if (quantidade != null && quantidade > 0) {
+                  _addMesasEmLote(quantidade);
+                }
+              }
+            },
+            child: const Text('Adicionar'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showErrorDialog(String message) {
@@ -105,28 +226,33 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
                 : _mesas.isEmpty
                 ? const Center(child: Text('Nenhuma mesa encontrada.'))
                 : ListView.builder(
-              padding: const EdgeInsets.all(16.0),
               itemCount: _mesas.length,
               itemBuilder: (context, index) {
                 final mesa = _mesas[index];
-                if (_pesquisa.isEmpty ||
-                    mesa['numero_mesa']
-                        .toString()
-                        .contains(_pesquisa)) {
+                if (_pesquisa.isEmpty || mesa['numero_mesa'].toString().contains(_pesquisa)) {
                   return _buildMesaCard(mesa);
-                } else {
-                  return Container();
                 }
+                return Container();
               },
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Ação para adicionar nova mesa (deixe vazio por enquanto)
-        },
-        child: const Icon(Icons.add),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            heroTag: 'addMesa',
+            onPressed: _showAddMesaDialog,
+            child: const Icon(Icons.add),
+          ),
+          const SizedBox(height: 10),
+          FloatingActionButton(
+            heroTag: 'addMesasEmLote',
+            onPressed: _showAddMesasEmLoteDialog,
+            child: const Icon(Icons.add_to_photos),
+          ),
+        ],
       ),
     );
   }
@@ -155,11 +281,11 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
+          icon: const Icon(Icons.edit),
+          onPressed: () {
                 // Ação para editar mesa (deixe vazio por enquanto)
-              },
-            ),
+          },
+        ),
           ],
         ),
       ),
