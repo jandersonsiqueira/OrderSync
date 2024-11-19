@@ -21,7 +21,7 @@ def criar_mesa(uid):
                 return jsonify({"error": f"Mesa {numero_mesa} já existe"}), 400
 
             nova_mesa = {
-                "numero_mesa": numero_mesa,
+                "numero_mesa": int(numero_mesa),
                 "status": dados.get('status', 'livre'),
                 "observacao": dados.get('observacao', '')
             }
@@ -45,7 +45,7 @@ def criar_mesa(uid):
                     return jsonify({"error": f"Mesa {numero_mesa} já existe"}), 400
 
                 nova_mesa = {
-                    "numero_mesa": numero_mesa,
+                    "numero_mesa": int(numero_mesa),
                     "status": mesa_dados.get('status', 'livre'),
                     "observacao": mesa_dados.get('observacao', '')
                 }
