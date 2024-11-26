@@ -64,7 +64,7 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://ordersync.onrender.com/$uid/pedidos/parcial'),
+        Uri.parse('https://order-sync-three.vercel.app/$uid/pedidos/parcial'),
         headers: {
           'Content-Type': 'application/json',
         },

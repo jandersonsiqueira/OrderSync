@@ -4,7 +4,7 @@ import 'dart:convert';
 class CategoriasController {
 
   Future<List<dynamic>> fetchCategorias(String uid) async {
-    final response = await http.get(Uri.parse('https://ordersync.onrender.com/$uid/categorias'));
+    final response = await http.get(Uri.parse('https://order-sync-three.vercel.app/$uid/categorias'));
 
     if (response.statusCode == 200) {
       List<dynamic> categorias = json.decode(response.body);

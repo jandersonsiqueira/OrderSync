@@ -38,7 +38,7 @@ class _PedidosParciaisPageState extends State<PedidosParciaisPage> {
   }
 
   Future<void> _fetchPedidos() async {
-    final response = await http.get(Uri.parse('https://ordersync.onrender.com/$uid/pedidos/parcial?numero_mesa=${widget.mesaId}'));
+    final response = await http.get(Uri.parse('https://order-sync-three.vercel.app/$uid/pedidos/parcial?numero_mesa=${widget.mesaId}'));
 
     if (response.statusCode == 200) {
       setState(() {

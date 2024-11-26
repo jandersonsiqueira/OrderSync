@@ -39,7 +39,7 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
 
   Future<void> _fetchMesas() async {
     try {
-      final response = await http.get(Uri.parse('https://ordersync.onrender.com/$uid/mesas'));
+      final response = await http.get(Uri.parse('https://order-sync-three.vercel.app/$uid/mesas'));
 
       if (response.statusCode == 200) {
         setState(() {
@@ -60,7 +60,7 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
   Future<void> _addMesa(String numeroMesa) async {
     try {
       final response = await http.post(
-        Uri.parse('https://ordersync.onrender.com/$uid/mesas'),
+        Uri.parse('https://order-sync-three.vercel.app/$uid/mesas'),
         headers: <String, String>{'Content-Type': 'application/json'},
         body: jsonEncode({'numero_mesa': numeroMesa}),
       );
@@ -89,7 +89,7 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
       );
 
       final response = await http.post(
-        Uri.parse('https://ordersync.onrender.com/$uid/mesas'),
+        Uri.parse('https://order-sync-three.vercel.app/$uid/mesas'),
         headers: <String, String>{'Content-Type': 'application/json'},
         body: jsonEncode(mesas),
       );

@@ -44,7 +44,7 @@ class _MesasPageState extends State<MesasPage> {
     });
 
     try {
-      final response = await http.get(Uri.parse('https://ordersync.onrender.com/$uid/mesas'));
+      final response = await http.get(Uri.parse('https://order-sync-three.vercel.app/$uid/mesas'));
       if (response.statusCode == 200) {
         setState(() {
           mesas = json.decode(response.body);
@@ -75,7 +75,7 @@ class _MesasPageState extends State<MesasPage> {
 
     try {
       final response = await http.put(
-        Uri.parse('https://ordersync.onrender.com/$uid/mesas/$mesaId'),
+        Uri.parse('https://order-sync-three.vercel.app/$uid/mesas/$mesaId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

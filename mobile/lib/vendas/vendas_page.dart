@@ -42,7 +42,7 @@ class _VendasPageState extends State<VendasPage> {
     });
 
     final response = await http.get(
-      Uri.parse('https://ordersync.onrender.com/$uid/pedidos/final?dt_inicial=${DateFormat('yyyy-MM-dd').format(dtInicial)}&dt_final=${DateFormat('yyyy-MM-dd').format(dtFinal)}&numero_mesa=$numeroMesa'),
+      Uri.parse('https://order-sync-three.vercel.app/$uid/pedidos/final?dt_inicial=${DateFormat('yyyy-MM-dd').format(dtInicial)}&dt_final=${DateFormat('yyyy-MM-dd').format(dtFinal)}&numero_mesa=$numeroMesa'),
     );
 
     if (response.statusCode == 200) {
