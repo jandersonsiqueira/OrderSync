@@ -42,7 +42,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
         _isLoading = true;
       });
       final response = await http.get(
-        Uri.parse('https://ordersync.onrender.com/$uid/produtos'),
+        Uri.parse('https://order-sync-three.vercel.app/$uid/produtos'),
       );
 
       if (response.statusCode == 200) {
@@ -64,7 +64,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
   Future<void> _fetchCategorias() async {
     try {
       final response = await http.get(
-        Uri.parse('https://ordersync.onrender.com/$uid/categorias'),
+        Uri.parse('https://order-sync-three.vercel.app/$uid/categorias'),
       );
 
       if (response.statusCode == 200) {
@@ -198,7 +198,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
       ) async {
     try {
       final response = await http.post(
-        Uri.parse('https://ordersync.onrender.com/$uid/produtos'),
+        Uri.parse('https://order-sync-three.vercel.app/$uid/produtos'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'nm_produto': nome,
@@ -234,7 +234,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
       ) async {
     try {
       final response = await http.put(
-        Uri.parse('https://ordersync.onrender.com/$uid/produtos/$id'),
+        Uri.parse('https://order-sync-three.vercel.app/$uid/produtos/$id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'nm_produto': nome,

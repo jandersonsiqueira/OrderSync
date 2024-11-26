@@ -44,9 +44,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchData() async {
-    final pedidosUrl = 'https://ordersync.onrender.com/$uid/pedidos/final';
-    final produtosUrl = 'https://ordersync.onrender.com/$uid/produtos';
-    final mesasUrl = 'https://ordersync.onrender.com/$uid/mesas';
+    final pedidosUrl = 'https://order-sync-three.vercel.app/$uid/pedidos/final';
+    final produtosUrl = 'https://order-sync-three.vercel.app/$uid/produtos';
+    final mesasUrl = 'https://order-sync-three.vercel.app/$uid/mesas';
 
     try {
       final pedidosResponse = await http.get(Uri.parse(pedidosUrl));

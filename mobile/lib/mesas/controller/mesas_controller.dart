@@ -15,7 +15,7 @@ class MesasController {
 
   Future<bool> _temPedidosParciais() async {
     final response = await http.get(
-      Uri.parse('https://ordersync.onrender.com/$uid/pedidos/parcial?numero_mesa=$mesaId'),
+      Uri.parse('https://order-sync-three.vercel.app/$uid/pedidos/parcial?numero_mesa=$mesaId'),
     );
 
     if (response.statusCode == 200) {

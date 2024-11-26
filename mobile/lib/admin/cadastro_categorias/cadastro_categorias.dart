@@ -39,7 +39,7 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
         _isLoading = true;
       });
       final response = await http.get(
-        Uri.parse('https://ordersync.onrender.com/$uid/categorias'),
+        Uri.parse('https://order-sync-three.vercel.app/$uid/categorias'),
       );
 
       if (response.statusCode == 200) {
@@ -135,7 +135,7 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
   Future<void> _addCategoria(String nome) async {
     try {
       final response = await http.post(
-        Uri.parse('https://ordersync.onrender.com/$uid/categorias'),
+        Uri.parse('https://order-sync-three.vercel.app/$uid/categorias'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'nm_categoria': nome}),
       );
@@ -156,7 +156,7 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
   Future<void> _updateCategoria(int id, String nome) async {
     try {
       final response = await http.put(
-        Uri.parse('https://ordersync.onrender.com/$uid/categorias/$id'),
+        Uri.parse('https://order-sync-three.vercel.app/$uid/categorias/$id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'nm_categoria': nome}),
       );

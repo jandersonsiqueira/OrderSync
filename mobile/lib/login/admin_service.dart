@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class AdminService {
   static Future<void> createAdminDatabase(String token) async {
     final response = await http.post(
-      Uri.parse('https://ordersync.onrender.com/create-admin'),
+      Uri.parse('https://order-sync-three.vercel.app/create-admin'),
       headers: <String, String>{
         'Content-Type': 'application/json',
       },
