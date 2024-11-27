@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:order_sync/mesas/pedido_parcial/pedidos_parciais_detalhes_page.dart';
-
 import '../../variaveis_globais.dart';
 
 class PedidosParciaisPage extends StatefulWidget {
@@ -38,7 +37,7 @@ class _PedidosParciaisPageState extends State<PedidosParciaisPage> {
   }
 
   Future<void> _fetchPedidos() async {
-    final response = await http.get(Uri.parse('https://order-sync-three.vercel.app/$uid/pedidos/parcial?numero_mesa=${widget.mesaId}'));
+    final response = await http.get(Uri.parse('$LINK_BASE/$uid/pedidos/parcial?numero_mesa=${widget.mesaId}'));
 
     if (response.statusCode == 200) {
       setState(() {

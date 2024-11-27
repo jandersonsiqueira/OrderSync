@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import '../../variaveis_globais.dart';
 
 class CadastroMesasPage extends StatefulWidget {
@@ -39,7 +38,7 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
 
   Future<void> _fetchMesas() async {
     try {
-      final response = await http.get(Uri.parse('https://order-sync-three.vercel.app/$uid/mesas'));
+      final response = await http.get(Uri.parse('$LINK_BASE/$uid/mesas'));
 
       if (response.statusCode == 200) {
         setState(() {
@@ -60,7 +59,7 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
   Future<void> _addMesa(String numeroMesa) async {
     try {
       final response = await http.post(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/mesas'),
+        Uri.parse('$LINK_BASE/$uid/mesas'),
         headers: <String, String>{'Content-Type': 'application/json'},
         body: jsonEncode({'numero_mesa': numeroMesa}),
       );
@@ -89,7 +88,7 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
       );
 
       final response = await http.post(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/mesas'),
+        Uri.parse('$LINK_BASE/$uid/mesas'),
         headers: <String, String>{'Content-Type': 'application/json'},
         body: jsonEncode(mesas),
       );

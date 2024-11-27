@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import '../../variaveis_globais.dart';
 
 class CadastroProdutosPage extends StatefulWidget {
@@ -42,7 +41,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
         _isLoading = true;
       });
       final response = await http.get(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/produtos'),
+        Uri.parse('$LINK_BASE/$uid/produtos'),
       );
 
       if (response.statusCode == 200) {
@@ -64,7 +63,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
   Future<void> _fetchCategorias() async {
     try {
       final response = await http.get(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/categorias'),
+        Uri.parse('$LINK_BASE/$uid/categorias'),
       );
 
       if (response.statusCode == 200) {
@@ -198,7 +197,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
       ) async {
     try {
       final response = await http.post(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/produtos'),
+        Uri.parse('$LINK_BASE/$uid/produtos'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'nm_produto': nome,
@@ -234,7 +233,7 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
       ) async {
     try {
       final response = await http.put(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/produtos/$id'),
+        Uri.parse('$LINK_BASE/$uid/produtos/$id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'nm_produto': nome,
