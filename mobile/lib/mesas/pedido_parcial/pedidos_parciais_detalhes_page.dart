@@ -93,8 +93,7 @@ class PedidoDetalhesPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Produto: ${item['cd_produto']}',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  'Produto: ${item['nm_produto']}',
                                 ),
                                 SizedBox(height: 4),
                                 Text('Preço: R\$ ${item['pr_venda'].toStringAsFixed(2)}'),

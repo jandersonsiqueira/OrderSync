@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:order_sync/mesas/pedido_parcial/pedidos_parciais_detalhes_page.dart';
+import 'package:order_sync/mesas/pedido_parcial/resumo_mesa_page.dart';
 import '../../variaveis_globais.dart';
 
 class PedidosParciaisPage extends StatefulWidget {
@@ -57,10 +58,10 @@ class _PedidosParciaisPageState extends State<PedidosParciaisPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'Pedidos Parciais',
-            style: const TextStyle(
-              color: Colors.white,
-            )
+          'Pedidos Parciais',
+          style: const TextStyle(
+            color: Colors.white,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Theme.of(context).primaryColor,
@@ -118,6 +119,17 @@ class _PedidosParciaisPageState extends State<PedidosParciaisPage> {
             );
           },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResumoMesaPage(pedidos: pedidos),
+            ),
+          );
+        },
+        child: Icon(Icons.receipt_long),
       ),
     );
   }
