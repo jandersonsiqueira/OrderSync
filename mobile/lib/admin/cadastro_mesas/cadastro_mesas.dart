@@ -43,6 +43,7 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
       if (response.statusCode == 200) {
         setState(() {
           _mesas = json.decode(response.body);
+          _mesas.sort((a, b) => a['numero_mesa'].compareTo(b['numero_mesa']));
           _isLoading = false;
         });
       } else {
@@ -79,7 +80,7 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
     try {
       // Calcula o número inicial com base na última mesa
       int numeroInicial = _mesas.isNotEmpty
-          ? _mesas.map((mesa) => int.tryParse(mesa['numero_mesa'] ?? '0') ?? 0).reduce((a, b) => a > b ? a : b) + 1
+          ? _mesas.map((mesa) => int.tryParse(mesa['numero_mesa'].toString() ?? '0') ?? 0).reduce((a, b) => a > b ? a : b) + 1
           : 1;
 
       List<Map<String, dynamic>> mesas = List.generate(

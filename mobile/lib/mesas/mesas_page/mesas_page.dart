@@ -47,6 +47,7 @@ class _MesasPageState extends State<MesasPage> {
       if (response.statusCode == 200) {
         setState(() {
           mesas = json.decode(response.body);
+          mesas.sort((a, b) => a['numero_mesa'].compareTo(b['numero_mesa']));
           _filterMesas();
         });
       } else {
