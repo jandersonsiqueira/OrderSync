@@ -7,7 +7,6 @@ class ResumoMesaPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Agrupar todos os itens e somar quantidade e valor total
     List<dynamic> todosItens = [];
     double valorTotal = 0;
     final String numeroMesa = pedidos.isNotEmpty ? pedidos.first['numero_mesa'] : 0;
