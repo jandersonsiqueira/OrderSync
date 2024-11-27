@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../variaveis_globais.dart';
 
 class FechamentoPedidoPage extends StatefulWidget {
@@ -64,7 +62,7 @@ class _FechamentoPedidoPageState extends State<FechamentoPedidoPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/pedidos/parcial'),
+        Uri.parse('$LINK_BASE/$uid/pedidos/parcial'),
         headers: {
           'Content-Type': 'application/json',
         },

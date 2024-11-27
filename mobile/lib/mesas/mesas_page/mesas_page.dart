@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import '../../variaveis_globais.dart';
 import '../pedido/pedido_page.dart';
 
@@ -44,10 +43,11 @@ class _MesasPageState extends State<MesasPage> {
     });
 
     try {
-      final response = await http.get(Uri.parse('https://order-sync-three.vercel.app/$uid/mesas'));
+      final response = await http.get(Uri.parse('$LINK_BASE/$uid/mesas'));
       if (response.statusCode == 200) {
         setState(() {
           mesas = json.decode(response.body);
+          mesas.sort((a, b) => a['numero_mesa'].compareTo(b['numero_mesa']));
           _filterMesas();
         });
       } else {
@@ -75,7 +75,7 @@ class _MesasPageState extends State<MesasPage> {
 
     try {
       final response = await http.put(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/mesas/$mesaId'),
+        Uri.parse('$LINK_BASE/$uid/mesas/$mesaId'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },

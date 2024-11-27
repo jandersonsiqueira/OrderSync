@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import '../../variaveis_globais.dart';
 
 class MesasController {
   final String uid;
@@ -15,7 +16,7 @@ class MesasController {
 
   Future<bool> _temPedidosParciais() async {
     final response = await http.get(
-      Uri.parse('https://order-sync-three.vercel.app/$uid/pedidos/parcial?numero_mesa=$mesaId'),
+      Uri.parse('$LINK_BASE/$uid/pedidos/parcial?numero_mesa=$mesaId'),
     );
 
     if (response.statusCode == 200) {

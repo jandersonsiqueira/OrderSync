@@ -49,6 +49,7 @@ def listar_pedidos_parciais(uid):
     # Obtendo as coleções usando get_collection
     pedido_parcial_collection = get_collection(uid, 'pedido_parcial')
     item_pedido_parcial_collection = get_collection(uid, 'item_pedido_parcial')
+    produto_collection = get_collection(uid, 'produto')
 
     # Filtragem por número da mesa, se fornecido
     filtro = {"numero_mesa": numero_mesa} if numero_mesa else {}
@@ -59,10 +60,18 @@ def listar_pedidos_parciais(uid):
 
         # Buscar os itens do pedido
         itens = list(item_pedido_parcial_collection.find({"cd_pedido": pedido['cd_pedido']}))
-        
+
         # Converter ObjectId para string e adicionar os itens ao pedido
         for item in itens:
             item['_id'] = str(item['_id'])
+
+            produto = produto_collection.find_one({"cd_produto": item['cd_produto']})
+
+            if produto:
+                item['nm_produto'] = produto['nm_produto']
+            else:
+                item['nm_produto'] = "Produto não encontrado"
+        
         pedido['itens'] = itens
 
     return jsonify(pedidos), 200

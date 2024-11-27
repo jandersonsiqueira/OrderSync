@@ -1,9 +1,10 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../variaveis_globais.dart';
 
 class ProdutosController {
   Future<List<dynamic>> fetchProdutos(String uid) async {
-    final response = await http.get(Uri.parse('https://order-sync-three.vercel.app/$uid/produtos'));
+    final response = await http.get(Uri.parse('$LINK_BASE/$uid/produtos'));
 
     if (response.statusCode == 200) {
       return json.decode(response.body);

@@ -3,7 +3,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import '../variaveis_globais.dart';
 
 class HomePage extends StatefulWidget {
@@ -44,9 +43,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchData() async {
-    final pedidosUrl = 'https://order-sync-three.vercel.app/$uid/pedidos/final';
-    final produtosUrl = 'https://order-sync-three.vercel.app/$uid/produtos';
-    final mesasUrl = 'https://order-sync-three.vercel.app/$uid/mesas';
+    final pedidosUrl = '$LINK_BASE/$uid/pedidos/final';
+    final produtosUrl = '$LINK_BASE/$uid/produtos';
+    final mesasUrl = '$LINK_BASE/$uid/mesas';
 
     try {
       final pedidosResponse = await http.get(Uri.parse(pedidosUrl));

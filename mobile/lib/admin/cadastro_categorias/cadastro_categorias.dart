@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import '../../variaveis_globais.dart';
 
 class CadastroCategoriasPage extends StatefulWidget {
@@ -39,7 +38,7 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
         _isLoading = true;
       });
       final response = await http.get(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/categorias'),
+        Uri.parse('$LINK_BASE/$uid/categorias'),
       );
 
       if (response.statusCode == 200) {
@@ -135,7 +134,7 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
   Future<void> _addCategoria(String nome) async {
     try {
       final response = await http.post(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/categorias'),
+        Uri.parse('$LINK_BASE/$uid/categorias'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'nm_categoria': nome}),
       );
@@ -156,7 +155,7 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
   Future<void> _updateCategoria(int id, String nome) async {
     try {
       final response = await http.put(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/categorias/$id'),
+        Uri.parse('$LINK_BASE/$uid/categorias/$id'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'nm_categoria': nome}),
       );

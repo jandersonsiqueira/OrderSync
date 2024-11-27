@@ -158,7 +158,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('https://order-sync-three.vercel.app/$uid/pedidos/final'),
+        Uri.parse('$LINK_BASE/$uid/pedidos/final'),
         headers: {"Content-Type": "application/json"},
         body: json.encode(pedidoData),
       );
@@ -181,7 +181,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
   Future<void> _statusMesa(String mesaId, String status, String msgAlerta) async {
     final response = await http.put(
-      Uri.parse('https://order-sync-three.vercel.app/$uid/mesas/$mesaId'),
+      Uri.parse('$LINK_BASE/$uid/mesas/$mesaId'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
