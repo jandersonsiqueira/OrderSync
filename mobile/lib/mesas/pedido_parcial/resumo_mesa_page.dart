@@ -19,9 +19,9 @@ class ResumoMesaPage extends StatelessWidget {
     // Agrupando itens por código e somando as quantidades
     Map<String, dynamic> itensAgrupados = {};
     for (var item in todosItens) {
-      if (itensAgrupados.containsKey(item['cd_produto'])) {
-        itensAgrupados[item['cd_produto']]['qt_item'] += item['qt_item'];
-        itensAgrupados[item['cd_produto']]['subtotal'] += item['pr_venda'] * item['qt_item'];
+      if (itensAgrupados.containsKey(item['cd_produto'].toString())) {
+        itensAgrupados[item['cd_produto'].toString()]['qt_item'] += item['qt_item'];
+        itensAgrupados[item['cd_produto'].toString()]['subtotal'] += item['pr_venda'] * item['qt_item'];
       } else {
         itensAgrupados[item['cd_produto'].toString()] = {
           'cd_produto': item['cd_produto'],
