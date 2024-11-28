@@ -244,13 +244,15 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
           FloatingActionButton(
             heroTag: 'addMesa',
             onPressed: _showAddMesaDialog,
-            child: const Icon(Icons.add),
+            backgroundColor: Theme.of(context).primaryColor,
+            child: const Icon(Icons.add, color: Colors.white),
           ),
           const SizedBox(height: 10),
           FloatingActionButton(
             heroTag: 'addMesasEmLote',
             onPressed: _showAddMesasEmLoteDialog,
-            child: const Icon(Icons.add_to_photos),
+            backgroundColor: Theme.of(context).primaryColor,
+            child: const Icon(Icons.add_to_photos, color: Colors.white),
           ),
         ],
       ),

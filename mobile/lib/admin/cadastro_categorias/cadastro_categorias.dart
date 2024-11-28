@@ -215,7 +215,8 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showCategoriaForm(),
-        child: const Icon(Icons.add),
+        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add, color: Colors.white)
       ),
     );
   }

@@ -129,7 +129,8 @@ class _PedidosParciaisPageState extends State<PedidosParciaisPage> {
             ),
           );
         },
-        child: Icon(Icons.receipt_long),
+        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.receipt_long, color: Colors.white),
       ),
     );
   }
