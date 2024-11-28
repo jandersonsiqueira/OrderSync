@@ -17,8 +17,8 @@ def criar_mesa(uid):
             numero_mesa = dados['numero_mesa']
 
             # Verifica se a mesa já existe
-            if mesas_collection.find_one({"numero_mesa": numero_mesa}):
-                return jsonify({"error": f"Mesa {numero_mesa} já existe"}), 400
+            if mesas_collection.find_one({"numero_mesa": int(numero_mesa)}):
+                return jsonify({"error": f"Mesa {numero_mesa} ja existe"}), 400
 
             nova_mesa = {
                 "numero_mesa": int(numero_mesa),
@@ -39,10 +39,6 @@ def criar_mesa(uid):
                     return jsonify({"error": "Cada item da lista deve conter o campo 'numero_mesa'"}), 400
 
                 numero_mesa = mesa_dados['numero_mesa']
-
-                # Verifica se a mesa já existe
-                if mesas_collection.find_one({"numero_mesa": numero_mesa}):
-                    return jsonify({"error": f"Mesa {numero_mesa} já existe"}), 400
 
                 nova_mesa = {
                     "numero_mesa": int(numero_mesa),
