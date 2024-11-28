@@ -329,7 +329,8 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showProdutoForm(),
-        child: const Icon(Icons.add),
+        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
