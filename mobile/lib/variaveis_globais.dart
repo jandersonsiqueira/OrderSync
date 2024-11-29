@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String LINK_BASE = 'https://order-sync-three.vercel.app';
+const bool DEBUG_LINKS = false;
+const String LINK_BASE = DEBUG_LINKS ? 'http://10.0.2.2:5000': 'https://order-sync-three.vercel.app';
 
 class VariaveisGlobais {
   // Método para salvar o UID no cache
