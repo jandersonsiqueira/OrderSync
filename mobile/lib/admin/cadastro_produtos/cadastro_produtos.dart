@@ -161,9 +161,18 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  if (_nomeController.text.isEmpty ||
+                      _precoCustoController.text.isEmpty ||
+                      _precoVendaController.text.isEmpty ||
+                      categoriaSelecionada == null) {
+                    return _showErrorDialog('Preencha todos os campos!');
+                  }
+
+                  _showLoadingIndicator();
+
                   if (isEditing) {
-                    _updateProduto(
+                    await _updateProduto(
                       produto!['cd_produto'],
                       _nomeController.text,
                       categoriaSelecionada,
@@ -171,13 +180,15 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
                       double.tryParse(_precoVendaController.text) ?? 0.0,
                     );
                   } else {
-                    _createProduto(
+                    await _createProduto(
                       _nomeController.text,
                       categoriaSelecionada,
                       double.tryParse(_precoCustoController.text) ?? 0.0,
                       double.tryParse(_precoVendaController.text) ?? 0.0,
                     );
                   }
+
+                  Navigator.pop(context);
                   Navigator.pop(context);
                 },
                 child: Text(isEditing ? 'Atualizar' : 'Adicionar'),
@@ -272,6 +283,18 @@ class _CadastroProdutosPageState extends State<CadastroProdutosPage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showLoadingIndicator() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
     );
   }
 
