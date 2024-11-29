@@ -120,18 +120,20 @@ class _PedidosParciaisPageState extends State<PedidosParciaisPage> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ResumoMesaPage(pedidos: pedidos),
-            ),
-          );
-        },
-        backgroundColor: Theme.of(context).primaryColor,
-        child: const Icon(Icons.receipt_long, color: Colors.white),
-      ),
+      floatingActionButton: pedidos.isNotEmpty ?
+        FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ResumoMesaPage(pedidos: pedidos),
+              ),
+            );
+          },
+          backgroundColor: Theme.of(context).primaryColor,
+          child: const Icon(Icons.receipt_long, color: Colors.white),
+        )
+      : null,
     );
   }
 }
