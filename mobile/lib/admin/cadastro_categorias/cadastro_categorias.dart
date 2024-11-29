@@ -97,7 +97,9 @@ class _CadastroCategoriasPageState extends State<CadastroCategoriasPage> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () async {
-                  if (_nomeController.text.isEmpty) return;
+                  if (_nomeController.text.isEmpty) {
+                    return _showErrorDialog('Nome da Categoria é obrigatório');
+                  }
 
                   _showLoadingIndicator();
 
