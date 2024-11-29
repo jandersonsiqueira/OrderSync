@@ -179,6 +179,12 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _logout() async {
+    await VariaveisGlobais.removeUidFromCache();
+
+    Navigator.pushReplacementNamed(context, '/login_page');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -189,6 +195,13 @@ class _HomePageState extends State<HomePage> {
         ),
         backgroundColor: Theme.of(context).primaryColor,
         iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+            tooltip: 'Sair',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(

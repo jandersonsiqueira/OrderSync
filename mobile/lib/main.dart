@@ -36,6 +36,7 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       home: const LoginPage(),
       routes: {
+        '/login_page': (context) => LoginPage(),
         '/mesas_page': (context) => MesasPage(),
         '/vendas_page': (context) => VendasPage(),
         '/admin_page': (context) => const AdminPage(),
