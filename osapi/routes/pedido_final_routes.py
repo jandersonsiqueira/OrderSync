@@ -38,18 +38,26 @@ def finalizar_atendimento(uid):
         }
         pedido_collection.insert_one(pedido_final)
 
-        # Transferir itens dos pedidos parciais para 'item_pedido'
+        # Consolidar itens dos pedidos parciais para 'item_pedido'
+        itens_consolidados = {}
         for pedido in pedidos_parciais:
             itens_parciais = list(item_pedido_parcial_collection.find({"cd_pedido": pedido['cd_pedido']}))
             for item in itens_parciais:
-                item_pedido = {
-                    "cd_pedido": cd_pedido,
-                    "cd_produto": item['cd_produto'],
-                    "pr_venda": item['pr_venda'],
-                    "qt_item": item['qt_item'],
-                    "observacao": item.get('observacao', '')
-                }
-                item_pedido_collection.insert_one(item_pedido)
+                cd_produto = item['cd_produto']
+                if cd_produto in itens_consolidados:
+                    itens_consolidados[cd_produto]['qt_item'] += item['qt_item']
+                else:
+                    itens_consolidados[cd_produto] = {
+                        "cd_pedido": cd_pedido,
+                        "cd_produto": cd_produto,
+                        "pr_venda": item['pr_venda'],
+                        "qt_item": item['qt_item'],
+                        "observacao": item.get('observacao', '')
+                    }
+
+        # Inserir os itens consolidados na coleção 'item_pedido'
+        for item_consolidado in itens_consolidados.values():
+            item_pedido_collection.insert_one(item_consolidado)
 
         # Remover pedidos parciais e itens parciais da mesa
         pedido_parcial_collection.delete_many({"numero_mesa": numero_mesa})
@@ -60,13 +68,14 @@ def finalizar_atendimento(uid):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Rota para listar pedidos
+# Rota para listar pedidos finais
 @pedido_final_bp.route('/<string:uid>/pedidos/final', methods=['GET'])
 def listar_pedidos(uid):
     try:
         # Obtém as coleções específicas usando a função genérica
         pedido_collection = get_collection(uid, 'pedido')
         item_pedido_collection = get_collection(uid, 'item_pedido')
+        produto_collection = get_collection(uid, 'produto')
 
         numero_mesa = request.args.get('numero_mesa')
         dt_inicial = request.args.get('dt_inicial')
@@ -108,6 +117,11 @@ def listar_pedidos(uid):
             # Converter ObjectId para string e adicionar os itens ao pedido
             for item in itens:
                 item['_id'] = str(item['_id'])
+
+                # Buscar o nome do produto relacionado
+                produto = produto_collection.find_one({"cd_produto": item['cd_produto']})
+                item['nm_produto'] = produto['nm_produto'] if produto else "Produto não encontrado"
+
             pedido['itens'] = itens
 
         return jsonify(pedidos), 200

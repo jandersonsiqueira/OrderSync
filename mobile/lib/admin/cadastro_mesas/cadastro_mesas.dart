@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../variaveis_globais.dart';
@@ -114,6 +115,9 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
           controller: _numeroMesaController,
           decoration: const InputDecoration(labelText: 'Número da Mesa'),
           keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+          ],
         ),
         actions: [
           TextButton(
@@ -153,6 +157,9 @@ class _CadastroMesasPageState extends State<CadastroMesasPage> {
           controller: _quantidadeMesasController,
           decoration: const InputDecoration(labelText: 'Quantidade de Mesas'),
           keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+          ],
         ),
         actions: [
           TextButton(

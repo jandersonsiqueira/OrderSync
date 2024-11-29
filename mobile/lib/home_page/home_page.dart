@@ -24,6 +24,7 @@ class _HomePageState extends State<HomePage> {
   List<String> produtosLegends = [];
   List<String> mesasLegends = [];
   String? uid;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -177,6 +178,9 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       print('Erro ao carregar dados: $e');
     }
+    finally {
+      isLoading = false;
+    }
   }
 
   Future<void> _logout() async {
@@ -203,7 +207,9 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: isLoading ?
+      const Center(child: CircularProgressIndicator()) :
+      SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
