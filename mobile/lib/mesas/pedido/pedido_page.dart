@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:order_sync/mesas/mesas_page/mesas_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../home_page/home_page.dart';
@@ -203,10 +204,12 @@ class _PedidoPageState extends State<PedidoPage> {
         ),
       );
 
+      // Gambiarra, mas funcionou
+      // Usei pra não precisa de um controller (pelo menos por enquanto) e também não redirecionar sempre pra home_page
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-            (Route<dynamic> route) => false,
+        MaterialPageRoute(builder: (context) => const MesasPage()),
+        (Route<dynamic> route) => route.isFirst || route.settings.name == '/home_page',
       );
     } else {
       throw Exception('Falha ao mudar o status da mesa');
