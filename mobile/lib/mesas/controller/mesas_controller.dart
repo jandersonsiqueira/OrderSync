@@ -62,7 +62,7 @@ class MesasController {
       builder: (context) {
         return AlertDialog(
           title: Text('Pedidos Parciais'),
-          content: Text('Existe pedidos parciais para esta mesa.'),
+          content: Text('Existem pedidos parciais para esta mesa.'),
           actions: [
             TextButton(
               child: Text('OK'),

@@ -139,7 +139,7 @@ class _PedidoPageState extends State<PedidoPage> {
     });
   }
 
-  void _finalizarAtendimento() async {
+  Future<void> _finalizarAtendimento() async {
     temPedidosParciais = await mesasController.verificarPedidosParciais();
 
     if (!temPedidosParciais) {
@@ -223,6 +223,18 @@ class _PedidoPageState extends State<PedidoPage> {
       total += item['produto']['pr_venda'] * item['quantidade'];
     });
     return total;
+  }
+
+  void _showLoadingIndicator() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
   }
 
   @override
@@ -344,8 +356,11 @@ class _PedidoPageState extends State<PedidoPage> {
                 leading: Icon(Icons.check),
                 title: Text('Fechar Mesa'),
                 onTap: () async {
+                  _showLoadingIndicator();
+
                   temPedidosParciais = await mesasController.verificarPedidosParciais();
                   if (!temPedidosParciais) {
+                    Navigator.pop(context);
                     mesasController.showAlertaSemPedidosParciais();
                     return;
                   } else {
@@ -359,8 +374,11 @@ class _PedidoPageState extends State<PedidoPage> {
                   leading: Icon(Icons.cancel),
                   title: Text('Cancelar Mesa'),
                   onTap: () async {
+                    _showLoadingIndicator();
+
                     temPedidosParciais = await mesasController.verificarPedidosParciais();
                     if (temPedidosParciais) {
+                      Navigator.pop(context);
                       mesasController.showAlertaComPedidosParciais();
                       return;
                     } else {
@@ -375,8 +393,10 @@ class _PedidoPageState extends State<PedidoPage> {
                 ListTile(
                   leading: Icon(Icons.payment),
                   title: Text('Realizar Pagamento'),
-                  onTap: () {
-                    _finalizarAtendimento();
+                  onTap: () async {
+                    _showLoadingIndicator();
+
+                    await _finalizarAtendimento();
                     Navigator.pop(context);
                   },
                 ),
