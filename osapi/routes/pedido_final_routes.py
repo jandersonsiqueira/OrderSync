@@ -77,52 +77,51 @@ def listar_pedidos(uid):
         item_pedido_collection = get_collection(uid, 'item_pedido')
         produto_collection = get_collection(uid, 'produto')
 
+        # Filtros
         numero_mesa = request.args.get('numero_mesa')
         dt_inicial = request.args.get('dt_inicial')
         dt_final = request.args.get('dt_final')
         cd_pedido = request.args.get('cd_pedido')
 
-        # Inicializa o filtro
         filtro = {}
-
-        # Adiciona filtros conforme necessário
         if cd_pedido:
             filtro['cd_pedido'] = cd_pedido
         elif numero_mesa:
             filtro['numero_mesa'] = numero_mesa
-
-        # Busca os pedidos com o filtro aplicado
-        pedidos = list(pedido_collection.find(filtro))
-
-        # Converte as datas recebidas para objetos datetime
+        
+        # Data de filtro
         if dt_inicial and dt_final:
             try:
                 dt_inicial = datetime.strptime(dt_inicial, '%Y-%m-%d')
                 dt_final = datetime.strptime(dt_final, '%Y-%m-%d') + timedelta(days=1) - timedelta(seconds=1)
-
-                # Filtra os pedidos com base na dt_emissao
-                pedidos = [pedido for pedido in pedidos 
-                           if dt_inicial <= datetime.fromisoformat(pedido['dt_emissao'][:-1]) <= dt_final]
-            
+                filtro['dt_emissao'] = {"$gte": dt_inicial.isoformat(), "$lte": dt_final.isoformat()}
             except ValueError:
                 return jsonify({"msg": "Data inválida, utilize o formato YYYY-MM-DD."}), 400
+        
+        # Busca de pedidos
+        pedidos = list(pedido_collection.find(filtro))
+        if not pedidos:
+            return jsonify([]), 200
 
-        # Adiciona os itens ao pedido
+        pedidos_ids = [pedido['cd_pedido'] for pedido in pedidos]
+        itens = list(item_pedido_collection.find({"cd_pedido": {"$in": pedidos_ids}}))
+        
+        produtos_ids = list(set(item['cd_produto'] for item in itens))
+        produtos = produto_collection.find({"cd_produto": {"$in": produtos_ids}})
+        produtos_map = {produto['cd_produto']: produto['nm_produto'] for produto in produtos}
+
+        # Montagem dos itens
+        for item in itens:
+            item['_id'] = str(item['_id'])
+            item['nm_produto'] = produtos_map.get(item['cd_produto'], "Produto não encontrado")
+
+        # Montagem dos pedidos
+        pedidos_map = {pedido['cd_pedido']: pedido for pedido in pedidos}
+        for item in itens:
+            pedidos_map[item['cd_pedido']].setdefault('itens', []).append(item)
+        
         for pedido in pedidos:
             pedido['_id'] = str(pedido['_id'])
-
-            # Buscar os itens do pedido
-            itens = list(item_pedido_collection.find({"cd_pedido": pedido['cd_pedido']}))
-            
-            # Converter ObjectId para string e adicionar os itens ao pedido
-            for item in itens:
-                item['_id'] = str(item['_id'])
-
-                # Buscar o nome do produto relacionado
-                produto = produto_collection.find_one({"cd_produto": item['cd_produto']})
-                item['nm_produto'] = produto['nm_produto'] if produto else "Produto não encontrado"
-
-            pedido['itens'] = itens
 
         return jsonify(pedidos), 200
 
