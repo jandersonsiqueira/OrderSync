@@ -19,6 +19,8 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _signInWithEmail() async {
+    _showLoadingIndicator();
+
     try {
       final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: _emailController.text,
@@ -28,6 +30,8 @@ class _LoginPageState extends State<LoginPage> {
       if (uid != null) {
         await VariaveisGlobais.saveUidToCache(uid);
       }
+
+      Navigator.pop(context);
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
     } catch (e) {
       _showError('Erro ao fazer login: $e');
@@ -35,6 +39,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _signInWithGoogle() async {
+    //_showLoadingIndicator();
+
     try {
       await GoogleSignIn().signOut();
 
@@ -61,10 +67,23 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
 
+      //Navigator.pop(context);
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomePage()));
     } catch (e) {
       _showError('Erro ao fazer login com Google: $e');
     }
+  }
+
+  void _showLoadingIndicator() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
   }
 
   void _showError(String message) {
@@ -113,11 +132,17 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _signInWithEmail,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Theme.of(context).canvasColor,
+              ),
               child: const Text('Entrar'),
             ),
             const SizedBox(height: 10),
             ElevatedButton.icon(
               onPressed: _signInWithGoogle,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Theme.of(context).canvasColor,
+              ),
               icon: const Icon(Icons.login),
               label: const Text('Entrar com Google'),
             ),
@@ -126,6 +151,9 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const RegisterPage()),
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).canvasColor,
               ),
               child: const Text('Cadastrar-se'),
             ),
