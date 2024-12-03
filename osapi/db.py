@@ -1,6 +1,15 @@
+import os
 from pymongo import MongoClient
+from dotenv import load_dotenv
 
-client = MongoClient('mongodb+srv://janderssampaio:at08YxfXaqrJWlST@cluster0.4c4wh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
+load_dotenv()
+
+mongo_conn_str = os.getenv('MONGO_CONN')
+
+if not mongo_conn_str:
+    raise Exception("MONGO_CONN não está definido no .env")
+
+client = MongoClient(mongo_conn_str)
 
 def get_database(uid):
     """Retorna a base de dados específica para o usuário (admin) com base no UID"""
