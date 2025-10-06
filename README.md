@@ -1,3 +1,3 @@
 # OrderSync
 
-É um sistema para gerenciamento de bares e restaurantes
+É um sistema para gerenciamento de bares e restaurantes.
